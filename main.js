@@ -431,3 +431,75 @@ ipcMain.handle('notification:show', (event, options) => {
     return { success: false, error: error.message };
   }
 });
+
+/**
+ * IPC Handlers for File Dialogs
+ */
+
+// Open File Dialog
+ipcMain.handle('dialog:openFile', async (event, options) => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: options?.title || 'Open File',
+    defaultPath: options?.defaultPath,
+    buttonLabel: options?.buttonLabel || 'Open',
+    filters: options?.filters || [
+      { name: 'All Files', extensions: ['*'] }
+    ],
+    properties: ['openFile', 'showHiddenFiles']
+  });
+
+  return {
+    canceled: result.canceled,
+    filePaths: result.filePaths
+  };
+});
+
+// Open Multiple Files Dialog
+ipcMain.handle('dialog:openFiles', async (event, options) => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: options?.title || 'Open Files',
+    defaultPath: options?.defaultPath,
+    buttonLabel: options?.buttonLabel || 'Open',
+    filters: options?.filters || [
+      { name: 'All Files', extensions: ['*'] }
+    ],
+    properties: ['openFile', 'multiSelections', 'showHiddenFiles']
+  });
+
+  return {
+    canceled: result.canceled,
+    filePaths: result.filePaths
+  };
+});
+
+// Save File Dialog
+ipcMain.handle('dialog:saveFile', async (event, options) => {
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: options?.title || 'Save File',
+    defaultPath: options?.defaultPath,
+    buttonLabel: options?.buttonLabel || 'Save',
+    filters: options?.filters || [
+      { name: 'All Files', extensions: ['*'] }
+    ]
+  });
+
+  return {
+    canceled: result.canceled,
+    filePath: result.filePath
+  };
+});
+
+// Select Directory Dialog
+ipcMain.handle('dialog:selectDirectory', async (event, options) => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: options?.title || 'Select Directory',
+    defaultPath: options?.defaultPath,
+    buttonLabel: options?.buttonLabel || 'Select',
+    properties: ['openDirectory', 'showHiddenFiles']
+  });
+
+  return {
+    canceled: result.canceled,
+    filePaths: result.filePaths
+  };
+});

@@ -164,7 +164,7 @@
       </div>
 
       <div class="features-grid">
-        <div class="card">
+        <div class="card" id="file-dialogs-card">
           <div class="card-header">
             <span class="card-icon">📂</span>
             <h3 class="card-title">File Dialogs</h3>
@@ -172,7 +172,14 @@
           <p class="card-description">
             Native open, save, and directory selection dialogs with filters.
           </p>
-          <span class="card-status coming-soon">Coming Soon</span>
+          <div style="margin-top: var(--space-4); display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2);">
+            <button class="btn btn-primary" id="dialog-open">Open File</button>
+            <button class="btn btn-primary" id="dialog-multiple">Open Multiple</button>
+            <button class="btn btn-success" id="dialog-directory">Select Folder</button>
+            <button class="btn btn-warning" id="dialog-save">Create File</button>
+          </div>
+          <div id="dialog-result" style="margin-top: var(--space-3); font-size: var(--font-size-xs); color: var(--text-secondary);"></div>
+          <span class="card-status ready">✓ Ready</span>
         </div>
 
         <div class="card">
@@ -375,6 +382,79 @@
             silent: false
           });
           console.log('Notification result:', result);
+        });
+      }
+
+      // File Dialog handlers
+      const resultDiv = document.getElementById('dialog-result');
+
+      const dialogOpenBtn = document.getElementById('dialog-open');
+      if (dialogOpenBtn && window.electronAPI?.openFileDialog) {
+        dialogOpenBtn.addEventListener('click', async () => {
+          const result = await window.electronAPI.openFileDialog({
+            title: 'Select a file to open',
+            filters: [
+              { name: 'Text Files', extensions: ['txt', 'md'] },
+              { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif'] },
+              { name: 'All Files', extensions: ['*'] }
+            ]
+          });
+          if (!result.canceled && result.filePaths.length > 0) {
+            resultDiv.textContent = `Selected: ${result.filePaths[0]}`;
+          } else {
+            resultDiv.textContent = 'Dialog canceled';
+          }
+          console.log('Open file result:', result);
+        });
+      }
+
+      const dialogSaveBtn = document.getElementById('dialog-save');
+      if (dialogSaveBtn && window.electronAPI?.saveFileDialog) {
+        dialogSaveBtn.addEventListener('click', async () => {
+          const result = await window.electronAPI.saveFileDialog({
+            title: 'Save file as',
+            defaultPath: 'document.txt',
+            filters: [
+              { name: 'Text Files', extensions: ['txt'] },
+              { name: 'All Files', extensions: ['*'] }
+            ]
+          });
+          if (!result.canceled && result.filePath) {
+            resultDiv.textContent = `Save to: ${result.filePath}`;
+          } else {
+            resultDiv.textContent = 'Dialog canceled';
+          }
+          console.log('Save file result:', result);
+        });
+      }
+
+      const dialogDirBtn = document.getElementById('dialog-directory');
+      if (dialogDirBtn && window.electronAPI?.selectDirectoryDialog) {
+        dialogDirBtn.addEventListener('click', async () => {
+          const result = await window.electronAPI.selectDirectoryDialog({
+            title: 'Select a directory'
+          });
+          if (!result.canceled && result.filePaths.length > 0) {
+            resultDiv.textContent = `Selected: ${result.filePaths[0]}`;
+          } else {
+            resultDiv.textContent = 'Dialog canceled';
+          }
+          console.log('Select directory result:', result);
+        });
+      }
+
+      const dialogMultipleBtn = document.getElementById('dialog-multiple');
+      if (dialogMultipleBtn && window.electronAPI?.openFilesDialog) {
+        dialogMultipleBtn.addEventListener('click', async () => {
+          const result = await window.electronAPI.openFilesDialog({
+            title: 'Select multiple files'
+          });
+          if (!result.canceled && result.filePaths.length > 0) {
+            resultDiv.textContent = `Selected ${result.filePaths.length} file(s)`;
+          } else {
+            resultDiv.textContent = 'Dialog canceled';
+          }
+          console.log('Open multiple files result:', result);
         });
       }
     });

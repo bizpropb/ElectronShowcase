@@ -43,6 +43,38 @@ contextBridge.exposeInMainWorld('electronAPI', {
   showNotification: (options) => ipcRenderer.invoke('notification:show', options),
 
   /**
+   * File Dialog APIs
+   */
+
+  /**
+   * Show open file dialog
+   * @param {Object} options - Dialog options
+   * @returns {Promise<Object>} Result with canceled flag and filePaths array
+   */
+  openFileDialog: (options) => ipcRenderer.invoke('dialog:openFile', options),
+
+  /**
+   * Show open multiple files dialog
+   * @param {Object} options - Dialog options
+   * @returns {Promise<Object>} Result with canceled flag and filePaths array
+   */
+  openFilesDialog: (options) => ipcRenderer.invoke('dialog:openFiles', options),
+
+  /**
+   * Show save file dialog
+   * @param {Object} options - Dialog options
+   * @returns {Promise<Object>} Result with canceled flag and filePath string
+   */
+  saveFileDialog: (options) => ipcRenderer.invoke('dialog:saveFile', options),
+
+  /**
+   * Show select directory dialog
+   * @param {Object} options - Dialog options
+   * @returns {Promise<Object>} Result with canceled flag and filePaths array
+   */
+  selectDirectoryDialog: (options) => ipcRenderer.invoke('dialog:selectDirectory', options),
+
+  /**
    * IPC Communication Helper
    * Sends a message to the main process and waits for response
    * @param {string} channel - IPC channel name
