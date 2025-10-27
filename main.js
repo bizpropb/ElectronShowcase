@@ -1,8 +1,236 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, Menu, dialog, shell } = require('electron');
 const path = require('path');
 
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow;
+
+/**
+ * Create the application menu
+ * Platform-specific menu with keyboard shortcuts
+ */
+function createApplicationMenu() {
+  const isMac = process.platform === 'darwin';
+
+  const template = [
+    // App Menu (macOS only)
+    ...(isMac ? [{
+      label: app.name,
+      submenu: [
+        {
+          label: `About ${app.name}`,
+          click: () => showAboutDialog()
+        },
+        { type: 'separator' },
+        {
+          label: 'Preferences...',
+          accelerator: 'CmdOrCtrl+,',
+          click: () => {
+            console.log('Preferences clicked');
+          }
+        },
+        { type: 'separator' },
+        { role: 'services' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    }] : []),
+
+    // File Menu
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'New Window',
+          accelerator: 'CmdOrCtrl+N',
+          click: () => createMainWindow()
+        },
+        { type: 'separator' },
+        {
+          label: 'Close Window',
+          accelerator: 'CmdOrCtrl+W',
+          role: 'close'
+        },
+        { type: 'separator' },
+        ...(!isMac ? [
+          {
+            label: 'Exit',
+            accelerator: 'Alt+F4',
+            click: () => app.quit()
+          }
+        ] : [])
+      ]
+    },
+
+    // Edit Menu
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo', accelerator: 'CmdOrCtrl+Z' },
+        { role: 'redo', accelerator: 'CmdOrCtrl+Shift+Z' },
+        { type: 'separator' },
+        { role: 'cut', accelerator: 'CmdOrCtrl+X' },
+        { role: 'copy', accelerator: 'CmdOrCtrl+C' },
+        { role: 'paste', accelerator: 'CmdOrCtrl+V' },
+        { role: 'selectAll', accelerator: 'CmdOrCtrl+A' },
+        { type: 'separator' },
+        {
+          label: 'Find',
+          accelerator: 'CmdOrCtrl+F',
+          click: () => {
+            console.log('Find clicked');
+          }
+        }
+      ]
+    },
+
+    // View Menu
+    {
+      label: 'View',
+      submenu: [
+        {
+          label: 'Reload',
+          accelerator: 'CmdOrCtrl+R',
+          click: (item, focusedWindow) => {
+            if (focusedWindow) focusedWindow.reload();
+          }
+        },
+        {
+          label: 'Force Reload',
+          accelerator: 'CmdOrCtrl+Shift+R',
+          click: (item, focusedWindow) => {
+            if (focusedWindow) focusedWindow.webContents.reloadIgnoringCache();
+          }
+        },
+        {
+          label: 'Toggle Developer Tools',
+          accelerator: isMac ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+          click: (item, focusedWindow) => {
+            if (focusedWindow) focusedWindow.webContents.toggleDevTools();
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Actual Size',
+          accelerator: 'CmdOrCtrl+0',
+          click: (item, focusedWindow) => {
+            if (focusedWindow) focusedWindow.webContents.setZoomLevel(0);
+          }
+        },
+        {
+          label: 'Zoom In',
+          accelerator: 'CmdOrCtrl+Plus',
+          click: (item, focusedWindow) => {
+            if (focusedWindow) {
+              const currentZoom = focusedWindow.webContents.getZoomLevel();
+              focusedWindow.webContents.setZoomLevel(currentZoom + 0.5);
+            }
+          }
+        },
+        {
+          label: 'Zoom Out',
+          accelerator: 'CmdOrCtrl+-',
+          click: (item, focusedWindow) => {
+            if (focusedWindow) {
+              const currentZoom = focusedWindow.webContents.getZoomLevel();
+              focusedWindow.webContents.setZoomLevel(currentZoom - 0.5);
+            }
+          }
+        },
+        { type: 'separator' },
+        { role: 'togglefullscreen' }
+      ]
+    },
+
+    // Window Menu
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        ...(isMac ? [
+          { type: 'separator' },
+          { role: 'front' },
+          { type: 'separator' },
+          { role: 'window' }
+        ] : [
+          { role: 'close' }
+        ])
+      ]
+    },
+
+    // Help Menu
+    {
+      label: 'Help',
+      submenu: [
+        {
+          label: 'Documentation',
+          click: async () => {
+            await shell.openExternal('https://www.electronjs.org/docs');
+          }
+        },
+        {
+          label: 'Search Issues',
+          click: async () => {
+            await shell.openExternal('https://github.com/electron/electron/issues');
+          }
+        },
+        {
+          label: 'Community Discussions',
+          click: async () => {
+            await shell.openExternal('https://github.com/electron/electron/discussions');
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Check for Updates...',
+          click: () => {
+            dialog.showMessageBox(mainWindow, {
+              type: 'info',
+              title: 'Updates',
+              message: 'You are running the latest version!',
+              detail: `Version ${app.getVersion()}\nNo updates available at this time.`,
+              buttons: ['OK']
+            });
+          }
+        },
+        { type: 'separator' },
+        ...(!isMac ? [{
+          label: `About ${app.name}`,
+          click: () => showAboutDialog()
+        }] : [])
+      ]
+    }
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
+
+/**
+ * Show About Dialog
+ */
+function showAboutDialog() {
+  dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    title: `About Electron Feature Explorer`,
+    message: 'Electron Feature Explorer',
+    detail: `Version: ${app.getVersion()}
+Platform: ${process.platform}
+Electron: ${process.versions.electron}
+Chrome: ${process.versions.chrome}
+Node.js: ${process.versions.node}
+
+A comprehensive showcase of Electron's native desktop capabilities.
+
+Built with ❤️ using Electron`,
+    buttons: ['OK'],
+    icon: null
+  });
+}
 
 /**
  * Create the main application window with secure configuration
@@ -48,6 +276,7 @@ function createMainWindow() {
  * This event fires when Electron has finished initialization
  */
 app.whenReady().then(() => {
+  createApplicationMenu();
   createMainWindow();
 
   // On macOS, re-create window when dock icon is clicked and no windows are open
