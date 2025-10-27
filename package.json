@@ -1,0 +1,30 @@
+{
+  "name": "electron-feature-explorer",
+  "version": "0.1.0",
+  "description": "A comprehensive showcase of Electron's native desktop capabilities",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "keywords": [
+    "electron",
+    "desktop",
+    "showcase",
+    "native",
+    "demo"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^38.4.0",
+    "electron-builder": "^26.0.12"
+  },
+  "dependencies": {
+    "electron-store": "^11.0.2"
+  }
+}
