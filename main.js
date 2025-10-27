@@ -2,6 +2,7 @@ const { app, BrowserWindow, Menu, dialog, shell, Tray, nativeImage, Notification
 const path = require('path');
 const fs = require('fs').promises;
 const notificationManager = require('./utils/notificationManager');
+const storeManager = require('./utils/storeManager');
 
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow;
@@ -727,4 +728,142 @@ ipcMain.handle('file:getRecent', () => {
 ipcMain.handle('file:clearRecent', () => {
   clearRecentFiles();
   return { success: true };
+});
+
+/**
+ * IPC Handlers for Persistent Storage (electron-store)
+ */
+
+// Get a value from store
+ipcMain.handle('store:get', (event, key, defaultValue) => {
+  try {
+    const value = storeManager.get(key, defaultValue);
+    return { success: true, value };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Set a value in store
+ipcMain.handle('store:set', (event, key, value) => {
+  try {
+    // Validate before setting
+    if (!storeManager.validate(key, value)) {
+      return { success: false, error: 'Validation failed' };
+    }
+    storeManager.set(key, value);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Check if key exists
+ipcMain.handle('store:has', (event, key) => {
+  try {
+    const exists = storeManager.has(key);
+    return { success: true, exists };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Delete a key
+ipcMain.handle('store:delete', (event, key) => {
+  try {
+    storeManager.delete(key);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Clear all store data
+ipcMain.handle('store:clear', () => {
+  try {
+    storeManager.clear();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Reset to defaults
+ipcMain.handle('store:reset', () => {
+  try {
+    storeManager.reset();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get all data
+ipcMain.handle('store:getAll', () => {
+  try {
+    const data = storeManager.getAll();
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get store statistics
+ipcMain.handle('store:getStats', () => {
+  try {
+    const stats = storeManager.getStats();
+    return { success: true, stats };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Export store data
+ipcMain.handle('store:export', (event, includeSecrets) => {
+  try {
+    const jsonData = storeManager.export(includeSecrets);
+    return { success: true, data: jsonData };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Import store data
+ipcMain.handle('store:import', (event, jsonString, merge) => {
+  try {
+    const success = storeManager.import(jsonString, merge);
+    return { success };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Set encrypted secret
+ipcMain.handle('store:setSecret', (event, key, value) => {
+  try {
+    storeManager.setSecret(key, value);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get encrypted secret
+ipcMain.handle('store:getSecret', (event, key) => {
+  try {
+    const value = storeManager.getSecret(key);
+    return { success: true, value };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Delete encrypted secret
+ipcMain.handle('store:deleteSecret', (event, key) => {
+  try {
+    storeManager.deleteSecret(key);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 });

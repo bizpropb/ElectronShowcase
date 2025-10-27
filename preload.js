@@ -225,6 +225,101 @@ contextBridge.exposeInMainWorld('electronAPI', {
   clearRecentFiles: () => ipcRenderer.invoke('file:clearRecent'),
 
   /**
+   * Persistent Storage APIs (electron-store)
+   */
+
+  /**
+   * Get value from store
+   * @param {string} key - Key to retrieve
+   * @param {any} [defaultValue] - Default value if key doesn't exist
+   * @returns {Promise<Object>} Result with value
+   */
+  storeGet: (key, defaultValue) => ipcRenderer.invoke('store:get', key, defaultValue),
+
+  /**
+   * Set value in store
+   * @param {string} key - Key to set
+   * @param {any} value - Value to store
+   * @returns {Promise<Object>} Result with success flag
+   */
+  storeSet: (key, value) => ipcRenderer.invoke('store:set', key, value),
+
+  /**
+   * Check if key exists in store
+   * @param {string} key - Key to check
+   * @returns {Promise<Object>} Result with exists boolean
+   */
+  storeHas: (key) => ipcRenderer.invoke('store:has', key),
+
+  /**
+   * Delete key from store
+   * @param {string} key - Key to delete
+   * @returns {Promise<Object>} Result with success flag
+   */
+  storeDelete: (key) => ipcRenderer.invoke('store:delete', key),
+
+  /**
+   * Clear all store data
+   * @returns {Promise<Object>} Result with success flag
+   */
+  storeClear: () => ipcRenderer.invoke('store:clear'),
+
+  /**
+   * Reset store to defaults
+   * @returns {Promise<Object>} Result with success flag
+   */
+  storeReset: () => ipcRenderer.invoke('store:reset'),
+
+  /**
+   * Get all store data
+   * @returns {Promise<Object>} Result with data object
+   */
+  storeGetAll: () => ipcRenderer.invoke('store:getAll'),
+
+  /**
+   * Get store statistics
+   * @returns {Promise<Object>} Result with stats
+   */
+  storeGetStats: () => ipcRenderer.invoke('store:getStats'),
+
+  /**
+   * Export store data as JSON
+   * @param {boolean} [includeSecrets=false] - Include encrypted secrets
+   * @returns {Promise<Object>} Result with JSON data string
+   */
+  storeExport: (includeSecrets) => ipcRenderer.invoke('store:export', includeSecrets),
+
+  /**
+   * Import store data from JSON
+   * @param {string} jsonString - JSON data to import
+   * @param {boolean} [merge=false] - Merge with existing data
+   * @returns {Promise<Object>} Result with success flag
+   */
+  storeImport: (jsonString, merge) => ipcRenderer.invoke('store:import', jsonString, merge),
+
+  /**
+   * Set encrypted secret
+   * @param {string} key - Key to store secret under
+   * @param {string} value - Value to encrypt
+   * @returns {Promise<Object>} Result with success flag
+   */
+  storeSetSecret: (key, value) => ipcRenderer.invoke('store:setSecret', key, value),
+
+  /**
+   * Get encrypted secret
+   * @param {string} key - Key to retrieve secret
+   * @returns {Promise<Object>} Result with decrypted value
+   */
+  storeGetSecret: (key) => ipcRenderer.invoke('store:getSecret', key),
+
+  /**
+   * Delete encrypted secret
+   * @param {string} key - Key to delete
+   * @returns {Promise<Object>} Result with success flag
+   */
+  storeDeleteSecret: (key) => ipcRenderer.invoke('store:deleteSecret', key),
+
+  /**
    * IPC Communication Helper
    * Sends a message to the main process and waits for response
    * Uses centralized channel validation

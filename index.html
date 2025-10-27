@@ -282,15 +282,71 @@
           <span class="card-status ready">✓ Ready</span>
         </div>
 
-        <div class="card">
+        <div class="card" id="storage-card" style="grid-column: span 2;">
           <div class="card-header">
             <span class="card-icon">💾</span>
-            <h3 class="card-title">Persistent Storage</h3>
+            <h3 class="card-title">Persistent Storage (electron-store)</h3>
           </div>
           <p class="card-description">
-            Encrypted key-value storage with schema validation and migrations.
+            Key-value storage with schema validation, encryption, export/import, and migrations.
           </p>
-          <span class="card-status coming-soon">Coming Soon</span>
+
+          <!-- CRUD Operations -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">Basic Operations</h4>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-2); margin-bottom: var(--space-2);">
+              <input type="text" id="store-key" placeholder="Key (e.g., theme)" style="padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary);">
+              <input type="text" id="store-value" placeholder="Value (e.g., dark)" style="padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary);">
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2);">
+              <button class="btn btn-success" id="store-set">Set Value</button>
+              <button class="btn btn-primary" id="store-get">Get Value</button>
+              <button class="btn btn-warning" id="store-delete">Delete Key</button>
+              <button class="btn" id="store-has" style="background: var(--bg-tertiary);">Check Exists</button>
+            </div>
+          </div>
+
+          <!-- Encrypted Secrets -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">Encrypted Secrets</h4>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-2); margin-bottom: var(--space-2);">
+              <input type="text" id="secret-key" placeholder="Secret key (e.g., apiKey)" style="padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary);">
+              <input type="password" id="secret-value" placeholder="Secret value" style="padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary);">
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2);">
+              <button class="btn" id="secret-set" style="background: var(--accent-blue);">Set Secret</button>
+              <button class="btn" id="secret-get" style="background: var(--bg-tertiary);">Get Secret</button>
+              <button class="btn" id="secret-delete" style="background: var(--accent-red);">Delete Secret</button>
+            </div>
+          </div>
+
+          <!-- Management & Inspection -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">Management & Inspection</h4>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2);">
+              <button class="btn" id="store-view-all" style="background: var(--bg-tertiary);">View All Data</button>
+              <button class="btn" id="store-export" style="background: var(--accent-green);">Export JSON</button>
+              <button class="btn" id="store-import" style="background: var(--accent-yellow);">Import JSON</button>
+              <button class="btn" id="store-reset" style="background: var(--accent-red);">Reset to Defaults</button>
+            </div>
+          </div>
+
+          <!-- Statistics -->
+          <div id="store-stats" style="margin-top: var(--space-4); padding: var(--space-3); background: var(--bg-tertiary); border-radius: 6px; font-size: var(--font-size-xs); color: var(--text-secondary);">
+            <strong>Store Stats:</strong>
+            <span id="stats-keys">0</span> keys •
+            <span id="stats-size">0</span> bytes •
+            <span id="stats-secrets">0</span> secrets •
+            Path: <span id="stats-path">...</span>
+          </div>
+
+          <!-- Result Display -->
+          <div id="store-result" style="margin-top: var(--space-3); padding: var(--space-3); background: var(--bg-tertiary); border-radius: 6px; font-size: var(--font-size-xs); color: var(--text-secondary); max-height: 200px; overflow-y: auto;">
+            <div style="color: var(--text-primary); margin-bottom: var(--space-2);">Result:</div>
+            <div id="store-result-content">Ready to store data...</div>
+          </div>
+
+          <span class="card-status ready">✓ Ready</span>
         </div>
       </div>
     </section>
@@ -408,7 +464,7 @@
     <!-- Footer -->
     <footer class="footer">
       <p>Built with Electron • Node.js <span id="node-version">...</span> • Chrome <span id="chrome-version">...</span></p>
-      <p style="margin-top: var(--space-2);">Step 7 Complete: File System - Dialogs & Operations ✓</p>
+      <p style="margin-top: var(--space-2);">Step 8 Complete: Persistent Storage - electron-store Integration ✓</p>
     </footer>
   </div>
 
@@ -873,6 +929,247 @@
           }
         });
       }
+
+      // Persistent Storage handlers
+      const storeResultContent = document.getElementById('store-result-content');
+
+      function setStoreResult(text, isError = false) {
+        storeResultContent.innerHTML = text;
+        storeResultContent.style.color = isError ? 'var(--accent-red)' : 'var(--text-secondary)';
+      }
+
+      async function updateStoreStats() {
+        const result = await window.electronAPI.storeGetStats();
+        if (result.success) {
+          document.getElementById('stats-keys').textContent = result.stats.keys;
+          document.getElementById('stats-size').textContent = result.stats.size;
+          document.getElementById('stats-secrets').textContent = result.stats.secretsCount;
+          document.getElementById('stats-path').textContent = result.stats.path;
+        }
+      }
+
+      // Basic CRUD operations
+      document.getElementById('store-set')?.addEventListener('click', async () => {
+        const key = document.getElementById('store-key').value;
+        const value = document.getElementById('store-value').value;
+
+        if (!key) {
+          setStoreResult('⚠ Please enter a key', true);
+          return;
+        }
+
+        // Try to parse value as JSON if it looks like JSON
+        let parsedValue = value;
+        if (value.startsWith('{') || value.startsWith('[')) {
+          try {
+            parsedValue = JSON.parse(value);
+          } catch (e) {
+            // Keep as string if not valid JSON
+          }
+        }
+
+        const result = await window.electronAPI.storeSet(key, parsedValue);
+        if (result.success) {
+          setStoreResult(`✓ Set <strong>${key}</strong> = ${JSON.stringify(parsedValue)}`);
+          await updateStoreStats();
+        } else {
+          setStoreResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      document.getElementById('store-get')?.addEventListener('click', async () => {
+        const key = document.getElementById('store-key').value;
+
+        if (!key) {
+          setStoreResult('⚠ Please enter a key', true);
+          return;
+        }
+
+        const result = await window.electronAPI.storeGet(key);
+        if (result.success) {
+          if (result.value !== undefined) {
+            setStoreResult(`✓ <strong>${key}</strong> = <div style="margin-top: 8px; padding: 8px; background: var(--bg-primary); border-radius: 4px; font-family: monospace;">${JSON.stringify(result.value, null, 2)}</div>`);
+          } else {
+            setStoreResult(`⚠ Key <strong>${key}</strong> does not exist`);
+          }
+        } else {
+          setStoreResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      document.getElementById('store-delete')?.addEventListener('click', async () => {
+        const key = document.getElementById('store-key').value;
+
+        if (!key) {
+          setStoreResult('⚠ Please enter a key', true);
+          return;
+        }
+
+        const result = await window.electronAPI.storeDelete(key);
+        if (result.success) {
+          setStoreResult(`✓ Deleted key: <strong>${key}</strong>`);
+          await updateStoreStats();
+        } else {
+          setStoreResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      document.getElementById('store-has')?.addEventListener('click', async () => {
+        const key = document.getElementById('store-key').value;
+
+        if (!key) {
+          setStoreResult('⚠ Please enter a key', true);
+          return;
+        }
+
+        const result = await window.electronAPI.storeHas(key);
+        if (result.success) {
+          setStoreResult(`Key <strong>${key}</strong> ${result.exists ? '✓ exists' : '✗ does not exist'}`);
+        } else {
+          setStoreResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      // Encrypted secrets operations
+      document.getElementById('secret-set')?.addEventListener('click', async () => {
+        const key = document.getElementById('secret-key').value;
+        const value = document.getElementById('secret-value').value;
+
+        if (!key || !value) {
+          setStoreResult('⚠ Please enter both key and value', true);
+          return;
+        }
+
+        const result = await window.electronAPI.storeSetSecret(key, value);
+        if (result.success) {
+          setStoreResult(`✓ Encrypted and stored secret: <strong>${key}</strong> 🔒`);
+          document.getElementById('secret-value').value = ''; // Clear password field
+          await updateStoreStats();
+        } else {
+          setStoreResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      document.getElementById('secret-get')?.addEventListener('click', async () => {
+        const key = document.getElementById('secret-key').value;
+
+        if (!key) {
+          setStoreResult('⚠ Please enter a secret key', true);
+          return;
+        }
+
+        const result = await window.electronAPI.storeGetSecret(key);
+        if (result.success && result.value) {
+          setStoreResult(`✓ Decrypted secret <strong>${key}</strong>: <div style="margin-top: 8px; padding: 8px; background: var(--bg-primary); border-radius: 4px; font-family: monospace;">${result.value}</div>`);
+        } else if (result.success && !result.value) {
+          setStoreResult(`⚠ Secret <strong>${key}</strong> does not exist`);
+        } else {
+          setStoreResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      document.getElementById('secret-delete')?.addEventListener('click', async () => {
+        const key = document.getElementById('secret-key').value;
+
+        if (!key) {
+          setStoreResult('⚠ Please enter a secret key', true);
+          return;
+        }
+
+        const result = await window.electronAPI.storeDeleteSecret(key);
+        if (result.success) {
+          setStoreResult(`✓ Deleted secret: <strong>${key}</strong>`);
+          await updateStoreStats();
+        } else {
+          setStoreResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      // Management operations
+      document.getElementById('store-view-all')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.storeGetAll();
+        if (result.success) {
+          const data = result.data;
+          const keys = Object.keys(data);
+          if (keys.length > 0) {
+            setStoreResult(`<strong>All Data (${keys.length} keys):</strong><div style="margin-top: 8px; padding: 8px; background: var(--bg-primary); border-radius: 4px; font-family: monospace; white-space: pre-wrap; max-height: 150px; overflow-y: auto;">${JSON.stringify(data, null, 2)}</div>`);
+          } else {
+            setStoreResult('Store is empty');
+          }
+        } else {
+          setStoreResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      document.getElementById('store-export')?.addEventListener('click', async () => {
+        const includeSecrets = confirm('Include encrypted secrets in export?');
+        const result = await window.electronAPI.storeExport(includeSecrets);
+
+        if (result.success) {
+          // Save to file
+          const saveResult = await window.electronAPI.saveFileDialog({
+            title: 'Export Store Data',
+            defaultPath: `store-export-${Date.now()}.json`,
+            filters: [{ name: 'JSON Files', extensions: ['json'] }]
+          });
+
+          if (!saveResult.canceled && saveResult.filePath) {
+            await window.electronAPI.writeFile(saveResult.filePath, result.data);
+            setStoreResult(`✓ Exported to: <strong>${saveResult.filePath}</strong>`);
+          } else {
+            setStoreResult('Export canceled');
+          }
+        } else {
+          setStoreResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      document.getElementById('store-import')?.addEventListener('click', async () => {
+        const fileResult = await window.electronAPI.openFileDialog({
+          title: 'Import Store Data',
+          filters: [{ name: 'JSON Files', extensions: ['json'] }]
+        });
+
+        if (!fileResult.canceled && fileResult.filePaths.length > 0) {
+          const readResult = await window.electronAPI.readFile(fileResult.filePaths[0]);
+
+          if (readResult.success) {
+            const merge = confirm('Merge with existing data? (Cancel = replace all)');
+            const importResult = await window.electronAPI.storeImport(readResult.content, merge);
+
+            if (importResult.success) {
+              setStoreResult(`✓ Imported data from: <strong>${fileResult.filePaths[0]}</strong> (${merge ? 'merged' : 'replaced'})`);
+              await updateStoreStats();
+            } else {
+              setStoreResult(`✗ Error importing: ${importResult.error}`, true);
+            }
+          } else {
+            setStoreResult(`✗ Error reading file: ${readResult.error}`, true);
+          }
+        } else {
+          setStoreResult('Import canceled');
+        }
+      });
+
+      document.getElementById('store-reset')?.addEventListener('click', async () => {
+        if (!confirm('Reset all data to defaults? This cannot be undone!')) {
+          return;
+        }
+
+        const result = await window.electronAPI.storeReset();
+        if (result.success) {
+          setStoreResult('✓ Store reset to defaults');
+          await updateStoreStats();
+        } else {
+          setStoreResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      // Initial stats update
+      updateStoreStats();
+
+      // Update stats periodically
+      setInterval(updateStoreStats, 5000);
     });
   </script>
 </body>
