@@ -1,0 +1,94 @@
+/**
+ * Theme Variables - Dark Mode Color System
+ *
+ * Color palette inspired by GitHub Dark with modern accents
+ * All colors selected for proper contrast ratios (WCAG AA compliance)
+ */
+
+:root {
+  /* Background Colors */
+  --bg-primary: #0d1117;      /* Main background */
+  --bg-secondary: #161b22;    /* Card/panel background */
+  --bg-tertiary: #21262d;     /* Elevated elements */
+  --bg-hover: #30363d;        /* Hover states */
+  --bg-active: #484f58;       /* Active/pressed states */
+
+  /* Text Colors */
+  --text-primary: #c9d1d9;    /* Primary text */
+  --text-secondary: #8b949e;  /* Secondary text */
+  --text-tertiary: #6e7681;   /* Disabled/muted text */
+  --text-inverse: #0d1117;    /* Text on colored backgrounds */
+
+  /* Accent Colors */
+  --accent-blue: #58a6ff;     /* Primary accent */
+  --accent-blue-hover: #79c0ff;
+  --accent-green: #3fb950;    /* Success */
+  --accent-green-hover: #56d364;
+  --accent-yellow: #d29922;   /* Warning */
+  --accent-yellow-hover: #e3b341;
+  --accent-red: #f85149;      /* Error/danger */
+  --accent-red-hover: #ff7b72;
+  --accent-purple: #bc8cff;   /* Special/premium */
+  --accent-purple-hover: #d2a8ff;
+
+  /* Border Colors */
+  --border-default: #30363d;  /* Default borders */
+  --border-muted: #21262d;    /* Subtle borders */
+  --border-accent: #58a6ff;   /* Highlighted borders */
+
+  /* Shadow */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.6);
+
+  /* Spacing Scale (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+  --space-10: 64px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', 'Arial', sans-serif;
+  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 2rem;      /* 32px */
+  --font-size-4xl: 2.5rem;    /* 40px */
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Z-index layers */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-modal: 200;
+  --z-toast: 300;
+  --z-tooltip: 400;
+}

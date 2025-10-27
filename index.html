@@ -6,137 +6,332 @@
         content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Electron Feature Explorer</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', 'Arial', sans-serif;
-      background-color: #0d1117;
-      color: #c9d1d9;
-      padding: 40px;
-      line-height: 1.6;
-    }
-
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-
-    h1 {
-      color: #58a6ff;
-      margin-bottom: 20px;
-      font-size: 2.5em;
-    }
-
-    .status {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      padding: 20px;
-      margin: 20px 0;
-    }
-
-    .status h2 {
-      color: #3fb950;
-      margin-bottom: 10px;
-      font-size: 1.5em;
-    }
-
-    .info {
-      display: grid;
-      grid-template-columns: 200px 1fr;
-      gap: 10px;
-      margin: 10px 0;
-    }
-
-    .label {
-      color: #8b949e;
-      font-weight: 600;
-    }
-
-    .value {
-      color: #c9d1d9;
-    }
-
-    .security-badge {
-      display: inline-block;
-      background: #3fb950;
-      color: #0d1117;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 0.85em;
-      font-weight: 600;
-      margin-right: 8px;
-    }
-
-    code {
-      background: #21262d;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-      color: #58a6ff;
-    }
-  </style>
+  <!-- CSS Files -->
+  <link rel="stylesheet" href="styles/theme.css">
+  <link rel="stylesheet" href="styles/animations.css">
+  <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
   <div class="container">
-    <h1>⚡ Electron Feature Explorer</h1>
-
-    <div class="status">
-      <h2>✓ Application Initialized Successfully</h2>
-      <p>Your Electron application is now running with secure configuration.</p>
-    </div>
-
-    <div class="status">
-      <h2>Security Status</h2>
-      <div style="margin: 15px 0;">
-        <span class="security-badge">✓ Context Isolation</span>
-        <span class="security-badge">✓ Sandbox Enabled</span>
-        <span class="security-badge">✓ Node Integration Disabled</span>
+    <!-- Header -->
+    <header class="header fade-in">
+      <div class="header-title">
+        <span class="icon">⚡</span>
+        <h1>Electron Feature Explorer</h1>
       </div>
-      <p style="color: #8b949e; font-size: 0.9em;">
-        All security best practices are enabled for this application.
+      <p class="header-subtitle">
+        A comprehensive showcase of Electron's native desktop capabilities
       </p>
-    </div>
-
-    <div class="status">
-      <h2>System Information</h2>
-      <div class="info">
-        <div class="label">Platform:</div>
-        <div class="value" id="platform">Loading...</div>
-
-        <div class="label">Node.js Version:</div>
-        <div class="value" id="node-version">Loading...</div>
-
-        <div class="label">Chrome Version:</div>
-        <div class="value" id="chrome-version">Loading...</div>
-
-        <div class="label">Electron Version:</div>
-        <div class="value" id="electron-version">Loading...</div>
+      <div class="flex items-center gap-4 mt-4">
+        <span class="badge success">✓ Secure</span>
+        <span class="badge info">Platform: <span id="platform">...</span></span>
+        <span class="badge">Electron <span id="electron-version">...</span></span>
       </div>
-    </div>
+    </header>
 
-    <div class="status">
-      <h2>Next Steps</h2>
-      <p>Step 1 is complete! The foundation is ready. Next, we'll build the beautiful dark mode UI system.</p>
-      <p style="margin-top: 10px; color: #8b949e;">
-        Check the console (DevTools) to verify <code>preload.js</code> loaded successfully.
-      </p>
-    </div>
+    <!-- Window Management Category -->
+    <section class="category-section fade-in">
+      <div class="category-header">
+        <span class="category-icon">🪟</span>
+        <h2 class="category-title">Window Management</h2>
+        <span class="category-count">4 features</span>
+      </div>
+
+      <div class="features-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🎨</span>
+            <h3 class="card-title">Multi-Window</h3>
+          </div>
+          <p class="card-description">
+            Create and manage multiple windows with proper lifecycle management and state persistence.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🖼️</span>
+            <h3 class="card-title">Frameless Window</h3>
+          </div>
+          <p class="card-description">
+            Custom window chrome with draggable regions and custom title bar controls.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">👻</span>
+            <h3 class="card-title">Transparent Window</h3>
+          </div>
+          <p class="card-description">
+            Create overlay windows with transparency and click-through functionality.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📐</span>
+            <h3 class="card-title">Window State</h3>
+          </div>
+          <p class="card-description">
+            Persist window bounds, position, and state across application restarts.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- System Integration Category -->
+    <section class="category-section fade-in">
+      <div class="category-header">
+        <span class="category-icon">⚙️</span>
+        <h2 class="category-title">System Integration</h2>
+        <span class="category-count">5 features</span>
+      </div>
+
+      <div class="features-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🔔</span>
+            <h3 class="card-title">Notifications</h3>
+          </div>
+          <p class="card-description">
+            Rich desktop notifications with actions, replies, and custom sounds.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📋</span>
+            <h3 class="card-title">System Tray</h3>
+          </div>
+          <p class="card-description">
+            Persistent tray icon with context menu and quick actions.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🎯</span>
+            <h3 class="card-title">App Menu</h3>
+          </div>
+          <p class="card-description">
+            Native application menu with keyboard shortcuts and dynamic items.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">⌨️</span>
+            <h3 class="card-title">Global Shortcuts</h3>
+          </div>
+          <p class="card-description">
+            Register system-wide keyboard shortcuts for quick app control.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🖱️</span>
+            <h3 class="card-title">Context Menus</h3>
+          </div>
+          <p class="card-description">
+            Rich right-click context menus with dynamic items and submenus.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- File System Category -->
+    <section class="category-section fade-in">
+      <div class="category-header">
+        <span class="category-icon">📁</span>
+        <h2 class="category-title">File System</h2>
+        <span class="category-count">4 features</span>
+      </div>
+
+      <div class="features-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📂</span>
+            <h3 class="card-title">File Dialogs</h3>
+          </div>
+          <p class="card-description">
+            Native open, save, and directory selection dialogs with filters.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🎯</span>
+            <h3 class="card-title">Drag & Drop</h3>
+          </div>
+          <p class="card-description">
+            Handle file drops with preview, validation, and processing.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">💾</span>
+            <h3 class="card-title">Persistent Storage</h3>
+          </div>
+          <p class="card-description">
+            Encrypted key-value storage with schema validation and migrations.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">👀</span>
+            <h3 class="card-title">File Watcher</h3>
+          </div>
+          <p class="card-description">
+            Monitor files and directories for real-time change detection.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- OS Integration Category -->
+    <section class="category-section fade-in">
+      <div class="category-header">
+        <span class="category-icon">💻</span>
+        <h2 class="category-title">OS Integration</h2>
+        <span class="category-count">4 features</span>
+      </div>
+
+      <div class="features-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📋</span>
+            <h3 class="card-title">Clipboard</h3>
+          </div>
+          <p class="card-description">
+            Full clipboard access with multiple formats and history tracking.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🚀</span>
+            <h3 class="card-title">Shell Integration</h3>
+          </div>
+          <p class="card-description">
+            Open external URLs, reveal files, and execute shell commands.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🔋</span>
+            <h3 class="card-title">Power Management</h3>
+          </div>
+          <p class="card-description">
+            Monitor battery status, suspend/resume events, and idle detection.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📊</span>
+            <h3 class="card-title">System Info</h3>
+          </div>
+          <p class="card-description">
+            Comprehensive system and hardware information dashboard.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Advanced Features Category -->
+    <section class="category-section fade-in">
+      <div class="category-header">
+        <span class="category-icon">🚀</span>
+        <h2 class="category-title">Advanced Features</h2>
+        <span class="category-count">4 features</span>
+      </div>
+
+      <div class="features-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📸</span>
+            <h3 class="card-title">Screen Capture</h3>
+          </div>
+          <p class="card-description">
+            Screenshot and screen recording with source selection and editing.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🖨️</span>
+            <h3 class="card-title">Printing & PDF</h3>
+          </div>
+          <p class="card-description">
+            Print pages and generate PDFs with custom settings and watermarks.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🔗</span>
+            <h3 class="card-title">Custom Protocol</h3>
+          </div>
+          <p class="card-description">
+            Register custom URL protocols for deep linking and app launching.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">⬆️</span>
+            <h3 class="card-title">Auto Updates</h3>
+          </div>
+          <p class="card-description">
+            Automatic update checking, downloading, and installation flow.
+          </p>
+          <span class="card-status coming-soon">Coming Soon</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Built with Electron • Node.js <span id="node-version">...</span> • Chrome <span id="chrome-version">...</span></p>
+      <p style="margin-top: var(--space-2);">Step 2 Complete: Beautiful Dark Mode UI System ✓</p>
+    </footer>
   </div>
 
+  <!-- JavaScript -->
   <script>
-    // Verify that electronAPI is available
+    // Verify that electronAPI is available and populate version info
     if (window.electronAPI) {
       console.log('✓ Electron API is available');
       console.log('Platform:', window.electronAPI.platform);
       console.log('Versions:', window.electronAPI.versions);
 
-      // Display platform info
+      // Display platform and version info
       document.getElementById('platform').textContent = window.electronAPI.platform;
       document.getElementById('node-version').textContent = window.electronAPI.versions.node;
       document.getElementById('chrome-version').textContent = window.electronAPI.versions.chrome;
@@ -144,6 +339,15 @@
     } else {
       console.error('✗ Electron API is NOT available - check preload.js');
     }
+
+    // Add staggered animation delays to cards
+    document.addEventListener('DOMContentLoaded', () => {
+      const cards = document.querySelectorAll('.card');
+      cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.05}s`;
+        card.classList.add('fade-in');
+      });
+    });
   </script>
 </body>
 </html>
