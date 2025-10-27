@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Electron Feature Explorer</title>
   <style>
@@ -134,12 +134,13 @@
     if (window.electronAPI) {
       console.log('✓ Electron API is available');
       console.log('Platform:', window.electronAPI.platform);
+      console.log('Versions:', window.electronAPI.versions);
 
       // Display platform info
       document.getElementById('platform').textContent = window.electronAPI.platform;
-      document.getElementById('node-version').textContent = process.versions.node;
-      document.getElementById('chrome-version').textContent = process.versions.chrome;
-      document.getElementById('electron-version').textContent = process.versions.electron;
+      document.getElementById('node-version').textContent = window.electronAPI.versions.node;
+      document.getElementById('chrome-version').textContent = window.electronAPI.versions.chrome;
+      document.getElementById('electron-version').textContent = window.electronAPI.versions.electron;
     } else {
       console.error('✗ Electron API is NOT available - check preload.js');
     }

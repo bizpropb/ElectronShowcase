@@ -19,7 +19,7 @@ function createMainWindow() {
       // Security best practices
       contextIsolation: true,        // Protect against prototype pollution
       nodeIntegration: false,         // Disable Node.js in renderer
-      sandbox: true,                  // Enable Chromium sandbox
+      sandbox: false,                 // Disabled to allow preload access to process.versions
       preload: path.join(__dirname, 'preload.js')
     }
   });

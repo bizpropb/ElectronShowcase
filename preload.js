@@ -18,6 +18,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
 
   /**
+   * Version information
+   */
+  versions: {
+    node: process.versions.node,
+    chrome: process.versions.chrome,
+    electron: process.versions.electron
+  },
+
+  /**
    * Get application version
    * @returns {Promise<string>} Application version
    */
