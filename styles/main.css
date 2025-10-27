@@ -239,6 +239,17 @@ code {
   border-color: var(--accent-yellow-hover);
 }
 
+.btn-error {
+  background: var(--accent-red);
+  color: var(--text-inverse);
+  border-color: var(--accent-red);
+}
+
+.btn-error:hover {
+  background: var(--accent-red-hover);
+  border-color: var(--accent-red-hover);
+}
+
 /* Badge Component */
 .badge {
   display: inline-flex;

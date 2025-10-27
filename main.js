@@ -1,5 +1,6 @@
 const { app, BrowserWindow, Menu, dialog, shell, Tray, nativeImage, Notification, ipcMain } = require('electron');
 const path = require('path');
+const notificationManager = require('./utils/notificationManager');
 
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow;
@@ -371,6 +372,7 @@ function createMainWindow() {
 app.whenReady().then(() => {
   createApplicationMenu();
   createTray();
+  setupNotificationHandlers();
   createMainWindow();
 
   // On macOS, re-create window when dock icon is clicked and no windows are open
@@ -402,34 +404,105 @@ app.on('before-quit', () => {
 });
 
 /**
+ * Setup notification event handlers
+ */
+function setupNotificationHandlers() {
+  // When notification is clicked, focus the window
+  notificationManager.on('notification-clicked', (data) => {
+    if (mainWindow) {
+      mainWindow.show();
+      mainWindow.focus();
+    }
+    console.log('Notification clicked:', data.id);
+  });
+
+  // When notification reply is received
+  notificationManager.on('notification-replied', (data) => {
+    console.log('Notification reply:', data.reply);
+    if (mainWindow) {
+      mainWindow.webContents.send('notification:reply-received', data);
+    }
+  });
+
+  // When notification action is clicked
+  notificationManager.on('notification-action', (data) => {
+    console.log('Notification action:', data.action);
+    if (mainWindow) {
+      mainWindow.webContents.send('notification:action-clicked', data);
+    }
+  });
+}
+
+/**
  * IPC Handlers for Notifications
  */
+
+// Show notification
 ipcMain.handle('notification:show', (event, options) => {
-  if (!Notification.isSupported()) {
-    return { success: false, error: 'Notifications not supported' };
-  }
+  return notificationManager.show(options);
+});
 
-  try {
-    const notification = new Notification({
-      title: options.title || 'Notification',
-      body: options.body || '',
-      icon: options.icon || path.join(__dirname, 'assets', 'tray-icon.png'),
-      silent: options.silent || false,
-      urgency: options.urgency || 'normal'
-    });
+// Show typed notification (info, success, warning, error)
+ipcMain.handle('notification:show-typed', (event, type, title, body, options) => {
+  return notificationManager.showTyped(type, title, body, options);
+});
 
-    notification.on('click', () => {
-      if (mainWindow) {
-        mainWindow.show();
-        mainWindow.focus();
-      }
-    });
+// Close notification by ID
+ipcMain.handle('notification:close', (event, id) => {
+  return notificationManager.close(id);
+});
 
-    notification.show();
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+// Close all notifications
+ipcMain.handle('notification:close-all', () => {
+  return notificationManager.closeAll();
+});
+
+// Get notification history
+ipcMain.handle('notification:get-history', (event, limit) => {
+  return notificationManager.getHistory(limit);
+});
+
+// Clear notification history
+ipcMain.handle('notification:clear-history', () => {
+  return notificationManager.clearHistory();
+});
+
+// Get notification queue
+ipcMain.handle('notification:get-queue', () => {
+  return notificationManager.getQueue();
+});
+
+// Clear notification queue
+ipcMain.handle('notification:clear-queue', () => {
+  return notificationManager.clearQueue();
+});
+
+// Enable Do Not Disturb
+ipcMain.handle('notification:dnd-enable', () => {
+  notificationManager.enableDoNotDisturb();
+  return { success: true, enabled: true };
+});
+
+// Disable Do Not Disturb
+ipcMain.handle('notification:dnd-disable', () => {
+  notificationManager.disableDoNotDisturb();
+  return { success: true, enabled: false };
+});
+
+// Toggle Do Not Disturb
+ipcMain.handle('notification:dnd-toggle', () => {
+  const enabled = notificationManager.toggleDoNotDisturb();
+  return { success: true, enabled };
+});
+
+// Get Do Not Disturb status
+ipcMain.handle('notification:dnd-status', () => {
+  return { enabled: notificationManager.getDoNotDisturbStatus() };
+});
+
+// Get notification statistics
+ipcMain.handle('notification:get-stats', () => {
+  return notificationManager.getStats();
 });
 
 /**

@@ -94,18 +94,64 @@
       </div>
 
       <div class="features-grid">
-        <div class="card" id="notifications-card">
+        <div class="card" id="notifications-card" style="grid-column: span 2;">
           <div class="card-header">
             <span class="card-icon">🔔</span>
-            <h3 class="card-title">Notifications</h3>
+            <h3 class="card-title">Desktop Notifications System</h3>
           </div>
           <p class="card-description">
-            Rich desktop notifications with actions, replies, and custom sounds.
+            Comprehensive notification system with actions, replies, Do Not Disturb, queue management, and history tracking.
           </p>
-          <div style="margin-top: var(--space-4); display: flex; gap: var(--space-2);">
-            <button class="btn btn-primary" id="notify-info">Show Info</button>
-            <button class="btn btn-success" id="notify-success">Show Success</button>
+
+          <!-- Notification Types -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">Basic Notifications</h4>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2);">
+              <button class="btn btn-primary" id="notify-info">Info</button>
+              <button class="btn btn-success" id="notify-success">Success</button>
+              <button class="btn btn-warning" id="notify-warning">Warning</button>
+              <button class="btn btn-error" id="notify-error">Error</button>
+            </div>
           </div>
+
+          <!-- Advanced Notifications -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">Advanced Features</h4>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2);">
+              <button class="btn btn-primary" id="notify-with-actions">With Actions</button>
+              <button class="btn btn-primary" id="notify-with-reply">With Reply</button>
+              <button class="btn btn-primary" id="notify-silent">Silent</button>
+            </div>
+          </div>
+
+          <!-- Do Not Disturb & Management -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">Management & Controls</h4>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2);">
+              <button class="btn" id="notify-dnd-toggle" style="background: var(--bg-tertiary);">
+                <span id="dnd-status">DND: Off</span>
+              </button>
+              <button class="btn" id="notify-show-history">View History</button>
+              <button class="btn" id="notify-show-queue">View Queue</button>
+              <button class="btn" id="notify-close-all">Close All</button>
+            </div>
+          </div>
+
+          <!-- Statistics Display -->
+          <div id="notification-stats" style="margin-top: var(--space-4); padding: var(--space-3); background: var(--bg-tertiary); border-radius: 6px; font-size: var(--font-size-xs); color: var(--text-secondary);">
+            <strong>Stats:</strong>
+            <span id="stats-total">0</span> total •
+            <span id="stats-history">0</span> in history •
+            <span id="stats-queued">0</span> queued •
+            <span id="stats-active">0</span> active
+          </div>
+
+          <!-- Event Log -->
+          <div id="notification-log" style="margin-top: var(--space-3); padding: var(--space-3); background: var(--bg-tertiary); border-radius: 6px; max-height: 120px; overflow-y: auto; font-size: var(--font-size-xs); font-family: monospace; color: var(--text-secondary);">
+            <div style="color: var(--text-primary); margin-bottom: var(--space-2);">Event Log:</div>
+            <div id="notification-log-content">Ready to show notifications...</div>
+          </div>
+
           <span class="card-status ready">✓ Ready</span>
         </div>
 
@@ -330,12 +376,181 @@
     <!-- Footer -->
     <footer class="footer">
       <p>Built with Electron • Node.js <span id="node-version">...</span> • Chrome <span id="chrome-version">...</span></p>
-      <p style="margin-top: var(--space-2);">Step 2 Complete: Beautiful Dark Mode UI System ✓</p>
+      <p style="margin-top: var(--space-2);">Step 5 Complete: Rich Desktop Notification System ✓</p>
     </footer>
   </div>
 
   <!-- JavaScript -->
   <script>
+    /**
+     * Notification System Setup
+     */
+    function setupNotificationSystem() {
+      const api = window.electronAPI;
+      if (!api) return;
+
+      // Helper function to log events
+      function logEvent(message) {
+        const logContent = document.getElementById('notification-log-content');
+        if (logContent) {
+          const timestamp = new Date().toLocaleTimeString();
+          const entry = document.createElement('div');
+          entry.textContent = `[${timestamp}] ${message}`;
+          entry.style.marginBottom = '4px';
+          logContent.appendChild(entry);
+          logContent.scrollTop = logContent.scrollHeight;
+
+          // Limit log entries to last 20
+          while (logContent.children.length > 20) {
+            logContent.removeChild(logContent.firstChild);
+          }
+        }
+      }
+
+      // Helper function to update stats
+      async function updateStats() {
+        try {
+          const stats = await api.getNotificationStats();
+          document.getElementById('stats-total').textContent = stats.totalShown;
+          document.getElementById('stats-history').textContent = stats.historyCount;
+          document.getElementById('stats-queued').textContent = stats.queuedCount;
+          document.getElementById('stats-active').textContent = stats.activeCount;
+
+          // Update DND status display
+          const dndStatus = document.getElementById('dnd-status');
+          if (dndStatus) {
+            dndStatus.textContent = stats.doNotDisturb ? 'DND: On 🔕' : 'DND: Off 🔔';
+            document.getElementById('notify-dnd-toggle').style.background =
+              stats.doNotDisturb ? 'var(--accent-red)' : 'var(--bg-tertiary)';
+          }
+        } catch (error) {
+          console.error('Error updating stats:', error);
+        }
+      }
+
+      // Basic notification buttons
+      document.getElementById('notify-info')?.addEventListener('click', async () => {
+        const result = await api.showNotificationTyped('info', 'Information',
+          'This is an info notification from Electron Feature Explorer!');
+        logEvent(`Info notification shown (ID: ${result.id})`);
+        await updateStats();
+      });
+
+      document.getElementById('notify-success')?.addEventListener('click', async () => {
+        const result = await api.showNotificationTyped('success', 'Success! 🎉',
+          'Your action completed successfully. Click to focus the app.');
+        logEvent(`Success notification shown (ID: ${result.id})`);
+        await updateStats();
+      });
+
+      document.getElementById('notify-warning')?.addEventListener('click', async () => {
+        const result = await api.showNotificationTyped('warning', 'Warning',
+          'This is a warning notification. Please pay attention!');
+        logEvent(`Warning notification shown (ID: ${result.id})`);
+        await updateStats();
+      });
+
+      document.getElementById('notify-error')?.addEventListener('click', async () => {
+        const result = await api.showNotificationTyped('error', 'Error',
+          'An error occurred! This is a critical notification.');
+        logEvent(`Error notification shown (ID: ${result.id})`);
+        await updateStats();
+      });
+
+      // Advanced notification buttons
+      document.getElementById('notify-with-actions')?.addEventListener('click', async () => {
+        const result = await api.showNotification({
+          title: 'Notification with Actions',
+          body: 'This notification has action buttons. Try clicking them!',
+          actions: [
+            { type: 'button', text: 'Accept' },
+            { type: 'button', text: 'Decline' }
+          ]
+        });
+        logEvent(`Notification with actions shown (ID: ${result.id})`);
+        await updateStats();
+      });
+
+      document.getElementById('notify-with-reply')?.addEventListener('click', async () => {
+        const result = await api.showNotification({
+          title: 'Quick Reply',
+          body: 'You can reply directly to this notification!',
+          hasReply: true,
+          replyPlaceholder: 'Type your reply here...'
+        });
+        logEvent(`Notification with reply shown (ID: ${result.id})`);
+        await updateStats();
+      });
+
+      document.getElementById('notify-silent')?.addEventListener('click', async () => {
+        const result = await api.showNotification({
+          title: 'Silent Notification',
+          body: 'This notification is silent (no sound).',
+          silent: true
+        });
+        logEvent(`Silent notification shown (ID: ${result.id})`);
+        await updateStats();
+      });
+
+      // Do Not Disturb toggle
+      document.getElementById('notify-dnd-toggle')?.addEventListener('click', async () => {
+        const result = await api.toggleDND();
+        logEvent(`Do Not Disturb ${result.enabled ? 'enabled' : 'disabled'}`);
+        await updateStats();
+      });
+
+      // View history
+      document.getElementById('notify-show-history')?.addEventListener('click', async () => {
+        const history = await api.getNotificationHistory(10);
+        logEvent(`History: ${history.length} notifications`);
+        if (history.length > 0) {
+          console.log('Notification History:', history);
+          alert(`Last ${history.length} notifications:\n\n` +
+            history.slice(0, 5).map((n, i) => `${i + 1}. ${n.title}: ${n.body}`).join('\n') +
+            (history.length > 5 ? '\n\n...and more (see console)' : ''));
+        } else {
+          alert('No notification history yet.');
+        }
+      });
+
+      // View queue
+      document.getElementById('notify-show-queue')?.addEventListener('click', async () => {
+        const queue = await api.getNotificationQueue();
+        logEvent(`Queue: ${queue.length} notifications`);
+        if (queue.length > 0) {
+          console.log('Notification Queue:', queue);
+          alert(`${queue.length} notifications in queue:\n\n` +
+            queue.map((n, i) => `${i + 1}. ${n.title}: ${n.body}`).join('\n'));
+        } else {
+          alert('No notifications in queue.');
+        }
+      });
+
+      // Close all notifications
+      document.getElementById('notify-close-all')?.addEventListener('click', async () => {
+        const result = await api.closeAllNotifications();
+        logEvent(`Closed ${result.count} active notification(s)`);
+        await updateStats();
+      });
+
+      // Listen for notification events
+      api.on('notification:reply-received', (data) => {
+        logEvent(`Reply received: "${data.reply}"`);
+        console.log('Notification reply:', data);
+      });
+
+      api.on('notification:action-clicked', (data) => {
+        logEvent(`Action clicked: ${data.action.text}`);
+        console.log('Notification action:', data);
+      });
+
+      // Initial stats update
+      updateStats();
+
+      // Update stats periodically
+      setInterval(updateStats, 5000);
+    }
+
     // Verify that electronAPI is available and populate version info
     if (window.electronAPI) {
       console.log('✓ Electron API is available');
@@ -359,31 +574,8 @@
         card.classList.add('fade-in');
       });
 
-      // Notification handlers
-      const notifyInfoBtn = document.getElementById('notify-info');
-      const notifySuccessBtn = document.getElementById('notify-success');
-
-      if (notifyInfoBtn && window.electronAPI?.showNotification) {
-        notifyInfoBtn.addEventListener('click', async () => {
-          const result = await window.electronAPI.showNotification({
-            title: 'Information',
-            body: 'This is a desktop notification from Electron Feature Explorer!',
-            silent: false
-          });
-          console.log('Notification result:', result);
-        });
-      }
-
-      if (notifySuccessBtn && window.electronAPI?.showNotification) {
-        notifySuccessBtn.addEventListener('click', async () => {
-          const result = await window.electronAPI.showNotification({
-            title: 'Success! 🎉',
-            body: 'Your action completed successfully. Click this notification to focus the app.',
-            silent: false
-          });
-          console.log('Notification result:', result);
-        });
-      }
+      // Notification System Handlers
+      setupNotificationSystem();
 
       // File Dialog handlers
       const resultDiv = document.getElementById('dialog-result');

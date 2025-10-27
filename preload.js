@@ -33,14 +33,102 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getVersion: () => ipcRenderer.invoke('app:get-version'),
 
   /**
-   * Show desktop notification
+   * Notification APIs
+   */
+
+  /**
+   * Show desktop notification with full options
    * @param {Object} options - Notification options
    * @param {string} options.title - Notification title
    * @param {string} options.body - Notification body text
-   * @param {boolean} options.silent - Whether to play sound
-   * @returns {Promise<Object>} Result object with success status
+   * @param {boolean} [options.silent] - Whether to play sound
+   * @param {string} [options.urgency] - Urgency level: low, normal, critical
+   * @param {Array} [options.actions] - Action buttons
+   * @param {boolean} [options.hasReply] - Enable reply functionality
+   * @param {string} [options.replyPlaceholder] - Reply input placeholder
+   * @param {string} [options.type] - Notification type: info, success, warning, error
+   * @returns {Promise<Object>} Result object with success status and notification ID
    */
   showNotification: (options) => ipcRenderer.invoke('notification:show', options),
+
+  /**
+   * Show typed notification (convenience method)
+   * @param {string} type - Notification type: info, success, warning, error
+   * @param {string} title - Notification title
+   * @param {string} body - Notification body
+   * @param {Object} [options] - Additional options
+   * @returns {Promise<Object>} Result object
+   */
+  showNotificationTyped: (type, title, body, options) =>
+    ipcRenderer.invoke('notification:show-typed', type, title, body, options),
+
+  /**
+   * Close specific notification by ID
+   * @param {number} id - Notification ID
+   * @returns {Promise<Object>} Result object
+   */
+  closeNotification: (id) => ipcRenderer.invoke('notification:close', id),
+
+  /**
+   * Close all active notifications
+   * @returns {Promise<Object>} Result with count of closed notifications
+   */
+  closeAllNotifications: () => ipcRenderer.invoke('notification:close-all'),
+
+  /**
+   * Get notification history
+   * @param {number} [limit=10] - Maximum number of items to return
+   * @returns {Promise<Array>} Array of notification objects
+   */
+  getNotificationHistory: (limit) => ipcRenderer.invoke('notification:get-history', limit),
+
+  /**
+   * Clear notification history
+   * @returns {Promise<Object>} Result object
+   */
+  clearNotificationHistory: () => ipcRenderer.invoke('notification:clear-history'),
+
+  /**
+   * Get queued notifications (DND mode)
+   * @returns {Promise<Array>} Array of queued notification objects
+   */
+  getNotificationQueue: () => ipcRenderer.invoke('notification:get-queue'),
+
+  /**
+   * Clear notification queue
+   * @returns {Promise<Object>} Result with count of cleared notifications
+   */
+  clearNotificationQueue: () => ipcRenderer.invoke('notification:clear-queue'),
+
+  /**
+   * Enable Do Not Disturb mode
+   * @returns {Promise<Object>} Result object with enabled status
+   */
+  enableDND: () => ipcRenderer.invoke('notification:dnd-enable'),
+
+  /**
+   * Disable Do Not Disturb mode
+   * @returns {Promise<Object>} Result object with enabled status
+   */
+  disableDND: () => ipcRenderer.invoke('notification:dnd-disable'),
+
+  /**
+   * Toggle Do Not Disturb mode
+   * @returns {Promise<Object>} Result object with new enabled status
+   */
+  toggleDND: () => ipcRenderer.invoke('notification:dnd-toggle'),
+
+  /**
+   * Get Do Not Disturb status
+   * @returns {Promise<Object>} Object with enabled property
+   */
+  getDNDStatus: () => ipcRenderer.invoke('notification:dnd-status'),
+
+  /**
+   * Get notification statistics
+   * @returns {Promise<Object>} Statistics object
+   */
+  getNotificationStats: () => ipcRenderer.invoke('notification:get-stats'),
 
   /**
    * File Dialog APIs
@@ -103,7 +191,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
    * @param {Function} callback - Callback function
    */
   on: (channel, callback) => {
-    const validChannels = ['notification:received', 'update:status'];
+    const validChannels = [
+      'notification:received',
+      'notification:reply-received',
+      'notification:action-clicked',
+      'update:status'
+    ];
 
     if (validChannels.includes(channel)) {
       ipcRenderer.on(channel, (event, ...args) => callback(...args));
@@ -118,7 +211,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
    * @param {Function} callback - Callback function to remove
    */
   off: (channel, callback) => {
-    const validChannels = ['notification:received', 'update:status'];
+    const validChannels = [
+      'notification:received',
+      'notification:reply-received',
+      'notification:action-clicked',
+      'update:status'
+    ];
 
     if (validChannels.includes(channel)) {
       ipcRenderer.removeListener(channel, callback);
