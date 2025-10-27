@@ -1,8 +1,9 @@
-const { app, BrowserWindow, Menu, dialog, shell } = require('electron');
+const { app, BrowserWindow, Menu, dialog, shell, Tray, nativeImage } = require('electron');
 const path = require('path');
 
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow;
+let tray = null;
 
 /**
  * Create the application menu
@@ -233,6 +234,89 @@ Built with ❤️ using Electron`,
 }
 
 /**
+ * Create system tray icon with context menu
+ */
+function createTray() {
+  const iconPath = path.join(__dirname, 'assets', 'tray-icon.png');
+  let icon = nativeImage.createFromPath(iconPath);
+
+  // Fallback to empty icon if file doesn't exist or fails to load
+  if (icon.isEmpty()) {
+    icon = nativeImage.createEmpty();
+  }
+
+  tray = new Tray(icon);
+  tray.setToolTip('Electron Feature Explorer');
+
+  // Create context menu for tray
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Show App',
+      click: () => {
+        if (mainWindow) {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      }
+    },
+    {
+      label: 'Hide App',
+      click: () => {
+        if (mainWindow) {
+          mainWindow.hide();
+        }
+      }
+    },
+    { type: 'separator' },
+    {
+      label: 'New Window',
+      click: () => createMainWindow()
+    },
+    { type: 'separator' },
+    {
+      label: 'About',
+      click: () => showAboutDialog()
+    },
+    { type: 'separator' },
+    {
+      label: 'Quit',
+      click: () => {
+        app.isQuitting = true;
+        app.quit();
+      }
+    }
+  ]);
+
+  tray.setContextMenu(contextMenu);
+
+  // Click on tray icon shows/hides window
+  tray.on('click', () => {
+    if (mainWindow) {
+      if (mainWindow.isVisible()) {
+        mainWindow.hide();
+      } else {
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    }
+  });
+}
+
+/**
+ * Toggle window visibility
+ */
+function toggleWindow() {
+  if (mainWindow) {
+    if (mainWindow.isVisible()) {
+      mainWindow.hide();
+    } else {
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  }
+}
+
+/**
  * Create the main application window with secure configuration
  */
 function createMainWindow() {
@@ -265,6 +349,15 @@ function createMainWindow() {
     mainWindow.webContents.openDevTools();
   }
 
+  // Minimize to tray instead of closing (unless quitting)
+  mainWindow.on('close', (event) => {
+    if (!app.isQuitting) {
+      event.preventDefault();
+      mainWindow.hide();
+      return false;
+    }
+  });
+
   // Clean up reference when window is closed
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -277,6 +370,7 @@ function createMainWindow() {
  */
 app.whenReady().then(() => {
   createApplicationMenu();
+  createTray();
   createMainWindow();
 
   // On macOS, re-create window when dock icon is clicked and no windows are open
