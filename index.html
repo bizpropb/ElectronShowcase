@@ -210,33 +210,76 @@
       </div>
 
       <div class="features-grid">
-        <div class="card" id="file-dialogs-card">
+        <div class="card" id="file-dialogs-card" style="grid-column: span 2;">
           <div class="card-header">
             <span class="card-icon">📂</span>
-            <h3 class="card-title">File Dialogs</h3>
+            <h3 class="card-title">File Dialogs & Operations</h3>
           </div>
           <p class="card-description">
-            Native open, save, and directory selection dialogs with filters.
+            Native dialogs, file I/O, metadata extraction, and recent files tracking.
           </p>
-          <div style="margin-top: var(--space-4); display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2);">
-            <button class="btn btn-primary" id="dialog-open">Open File</button>
-            <button class="btn btn-primary" id="dialog-multiple">Open Multiple</button>
-            <button class="btn btn-success" id="dialog-directory">Select Folder</button>
-            <button class="btn btn-warning" id="dialog-save">Create File</button>
+
+          <!-- Dialog Buttons -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">File Dialogs</h4>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2);">
+              <button class="btn btn-primary" id="dialog-open">Open File</button>
+              <button class="btn btn-primary" id="dialog-multiple">Open Multiple</button>
+              <button class="btn btn-success" id="dialog-directory">Select Folder</button>
+              <button class="btn btn-warning" id="dialog-save">Save File</button>
+            </div>
           </div>
-          <div id="dialog-result" style="margin-top: var(--space-3); font-size: var(--font-size-xs); color: var(--text-secondary);"></div>
+
+          <!-- Message Boxes -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">Message Boxes</h4>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2);">
+              <button class="btn" id="msgbox-info" style="background: var(--accent-blue);">Info Box</button>
+              <button class="btn" id="msgbox-warning" style="background: var(--accent-yellow);">Warning</button>
+              <button class="btn" id="msgbox-error" style="background: var(--accent-red);">Error</button>
+              <button class="btn" id="msgbox-question" style="background: var(--accent-green);">Question</button>
+            </div>
+          </div>
+
+          <!-- File Operations -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">File Operations</h4>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2);">
+              <button class="btn" id="file-read-preview" style="background: var(--bg-tertiary);">Read & Preview</button>
+              <button class="btn" id="file-metadata" style="background: var(--bg-tertiary);">Get Metadata</button>
+              <button class="btn" id="file-recent" style="background: var(--bg-tertiary);">Recent Files</button>
+            </div>
+          </div>
+
+          <!-- Result Display -->
+          <div id="dialog-result" style="margin-top: var(--space-3); padding: var(--space-3); background: var(--bg-tertiary); border-radius: 6px; font-size: var(--font-size-xs); color: var(--text-secondary); min-height: 60px;">
+            <div style="color: var(--text-primary); margin-bottom: var(--space-2);">Result:</div>
+            <div id="dialog-result-content">Ready...</div>
+          </div>
+
           <span class="card-status ready">✓ Ready</span>
         </div>
 
-        <div class="card">
+        <div class="card" id="drag-drop-card">
           <div class="card-header">
             <span class="card-icon">🎯</span>
-            <h3 class="card-title">Drag & Drop</h3>
+            <h3 class="card-title">Drag & Drop Files</h3>
           </div>
           <p class="card-description">
-            Handle file drops with preview, validation, and processing.
+            Drop files here to process them with validation and preview.
           </p>
-          <span class="card-status coming-soon">Coming Soon</span>
+
+          <!-- Drop Zone -->
+          <div id="drop-zone" style="margin-top: var(--space-4); padding: var(--space-6); border: 2px dashed var(--border); border-radius: 8px; text-align: center; background: var(--bg-tertiary); cursor: pointer; transition: all 0.2s;">
+            <div style="font-size: 48px; margin-bottom: var(--space-2);">📁</div>
+            <div style="color: var(--text-primary); margin-bottom: var(--space-1);">Drop files here</div>
+            <div style="font-size: var(--font-size-xs); color: var(--text-secondary);">or click to browse</div>
+          </div>
+
+          <!-- Dropped Files List -->
+          <div id="dropped-files" style="margin-top: var(--space-3); font-size: var(--font-size-xs); color: var(--text-secondary); max-height: 120px; overflow-y: auto;"></div>
+
+          <span class="card-status ready">✓ Ready</span>
         </div>
 
         <div class="card">
@@ -246,17 +289,6 @@
           </div>
           <p class="card-description">
             Encrypted key-value storage with schema validation and migrations.
-          </p>
-          <span class="card-status coming-soon">Coming Soon</span>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span class="card-icon">👀</span>
-            <h3 class="card-title">File Watcher</h3>
-          </div>
-          <p class="card-description">
-            Monitor files and directories for real-time change detection.
           </p>
           <span class="card-status coming-soon">Coming Soon</span>
         </div>
@@ -376,7 +408,7 @@
     <!-- Footer -->
     <footer class="footer">
       <p>Built with Electron • Node.js <span id="node-version">...</span> • Chrome <span id="chrome-version">...</span></p>
-      <p style="margin-top: var(--space-2);">Step 6 Complete: Secure IPC Communication Framework ✓</p>
+      <p style="margin-top: var(--space-2);">Step 7 Complete: File System - Dialogs & Operations ✓</p>
     </footer>
   </div>
 
@@ -578,7 +610,13 @@
       setupNotificationSystem();
 
       // File Dialog handlers
-      const resultDiv = document.getElementById('dialog-result');
+      const resultContent = document.getElementById('dialog-result-content');
+      let lastSelectedFile = null;
+
+      function setResult(text, isError = false) {
+        resultContent.innerHTML = text;
+        resultContent.style.color = isError ? 'var(--accent-red)' : 'var(--text-secondary)';
+      }
 
       const dialogOpenBtn = document.getElementById('dialog-open');
       if (dialogOpenBtn && window.electronAPI?.openFileDialog) {
@@ -586,15 +624,16 @@
           const result = await window.electronAPI.openFileDialog({
             title: 'Select a file to open',
             filters: [
-              { name: 'Text Files', extensions: ['txt', 'md'] },
+              { name: 'Text Files', extensions: ['txt', 'md', 'json'] },
               { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif'] },
               { name: 'All Files', extensions: ['*'] }
             ]
           });
           if (!result.canceled && result.filePaths.length > 0) {
-            resultDiv.textContent = `Selected: ${result.filePaths[0]}`;
+            lastSelectedFile = result.filePaths[0];
+            setResult(`✓ Selected: <strong>${result.filePaths[0]}</strong>`);
           } else {
-            resultDiv.textContent = 'Dialog canceled';
+            setResult('Dialog canceled');
           }
           console.log('Open file result:', result);
         });
@@ -605,16 +644,20 @@
         dialogSaveBtn.addEventListener('click', async () => {
           const result = await window.electronAPI.saveFileDialog({
             title: 'Save file as',
-            defaultPath: 'document.txt',
+            defaultPath: 'my-document.txt',
             filters: [
               { name: 'Text Files', extensions: ['txt'] },
+              { name: 'Markdown', extensions: ['md'] },
               { name: 'All Files', extensions: ['*'] }
             ]
           });
           if (!result.canceled && result.filePath) {
-            resultDiv.textContent = `Save to: ${result.filePath}`;
+            setResult(`✓ Save location: <strong>${result.filePath}</strong>`);
+            // Demo: Write some content
+            await window.electronAPI.writeFile(result.filePath, `Sample content created at ${new Date().toLocaleString()}`);
+            setResult(`✓ File saved: <strong>${result.filePath}</strong>`);
           } else {
-            resultDiv.textContent = 'Dialog canceled';
+            setResult('Dialog canceled');
           }
           console.log('Save file result:', result);
         });
@@ -627,9 +670,9 @@
             title: 'Select a directory'
           });
           if (!result.canceled && result.filePaths.length > 0) {
-            resultDiv.textContent = `Selected: ${result.filePaths[0]}`;
+            setResult(`✓ Directory: <strong>${result.filePaths[0]}</strong>`);
           } else {
-            resultDiv.textContent = 'Dialog canceled';
+            setResult('Dialog canceled');
           }
           console.log('Select directory result:', result);
         });
@@ -639,14 +682,195 @@
       if (dialogMultipleBtn && window.electronAPI?.openFilesDialog) {
         dialogMultipleBtn.addEventListener('click', async () => {
           const result = await window.electronAPI.openFilesDialog({
-            title: 'Select multiple files'
+            title: 'Select multiple files',
+            filters: [
+              { name: 'All Files', extensions: ['*'] }
+            ]
           });
           if (!result.canceled && result.filePaths.length > 0) {
-            resultDiv.textContent = `Selected ${result.filePaths.length} file(s)`;
+            setResult(`✓ Selected <strong>${result.filePaths.length}</strong> file(s):<br>` +
+              result.filePaths.map(f => `• ${f}`).slice(0, 5).join('<br>') +
+              (result.filePaths.length > 5 ? '<br>...and more' : ''));
           } else {
-            resultDiv.textContent = 'Dialog canceled';
+            setResult('Dialog canceled');
           }
           console.log('Open multiple files result:', result);
+        });
+      }
+
+      // Message Box handlers
+      document.getElementById('msgbox-info')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.showMessageBox({
+          type: 'info',
+          title: 'Information',
+          message: 'This is an informational message box',
+          detail: 'You can display important information to users using this dialog.',
+          buttons: ['Got it', 'Cancel']
+        });
+        setResult(`Info box - Button clicked: ${result.response === 0 ? 'Got it' : 'Cancel'}`);
+      });
+
+      document.getElementById('msgbox-warning')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.showMessageBox({
+          type: 'warning',
+          title: 'Warning',
+          message: 'This is a warning message',
+          detail: 'Are you sure you want to proceed with this action?',
+          buttons: ['Proceed', 'Cancel'],
+          defaultId: 1
+        });
+        setResult(`Warning box - Button clicked: ${result.response === 0 ? 'Proceed' : 'Cancel'}`);
+      });
+
+      document.getElementById('msgbox-error')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.showMessageBox({
+          type: 'error',
+          title: 'Error',
+          message: 'An error has occurred',
+          detail: 'The operation could not be completed. Please try again.',
+          buttons: ['Retry', 'Ignore', 'Cancel'],
+          defaultId: 2
+        });
+        const buttonText = ['Retry', 'Ignore', 'Cancel'][result.response];
+        setResult(`Error box - Button clicked: ${buttonText}`);
+      });
+
+      document.getElementById('msgbox-question')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.showMessageBox({
+          type: 'question',
+          title: 'Question',
+          message: 'Do you want to save your changes?',
+          detail: 'Your changes will be lost if you don\'t save them.',
+          buttons: ['Save', 'Don\'t Save', 'Cancel'],
+          defaultId: 0
+        });
+        const buttonText = ['Save', 'Don\'t Save', 'Cancel'][result.response];
+        setResult(`Question box - Button clicked: ${buttonText}`);
+      });
+
+      // File Operations handlers
+      document.getElementById('file-read-preview')?.addEventListener('click', async () => {
+        if (!lastSelectedFile) {
+          setResult('⚠ Please select a file first using "Open File" button', true);
+          return;
+        }
+
+        const result = await window.electronAPI.readFile(lastSelectedFile);
+        if (result.success) {
+          const preview = result.content.substring(0, 200) + (result.content.length > 200 ? '...' : '');
+          setResult(`✓ Read file: <strong>${result.metadata.name}</strong><br>` +
+            `Size: ${(result.metadata.size / 1024).toFixed(2)} KB<br>` +
+            `Preview: <div style="margin-top: 8px; padding: 8px; background: var(--bg-primary); border-radius: 4px; font-family: monospace; font-size: 11px; white-space: pre-wrap;">${preview}</div>`);
+        } else {
+          setResult(`✗ Error reading file: ${result.error}`, true);
+        }
+      });
+
+      document.getElementById('file-metadata')?.addEventListener('click', async () => {
+        if (!lastSelectedFile) {
+          setResult('⚠ Please select a file first using "Open File" button', true);
+          return;
+        }
+
+        const result = await window.electronAPI.getFileMetadata(lastSelectedFile);
+        if (result.success) {
+          const m = result.metadata;
+          setResult(`<strong>File Metadata:</strong><br>` +
+            `Name: ${m.name}<br>` +
+            `Size: ${(m.size / 1024).toFixed(2)} KB<br>` +
+            `Extension: ${m.extension || 'none'}<br>` +
+            `Type: ${m.isFile ? 'File' : 'Directory'}<br>` +
+            `Created: ${new Date(m.created).toLocaleString()}<br>` +
+            `Modified: ${new Date(m.modified).toLocaleString()}`);
+        } else {
+          setResult(`✗ Error getting metadata: ${result.error}`, true);
+        }
+      });
+
+      document.getElementById('file-recent')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.getRecentFiles();
+        if (result.recentFiles.length > 0) {
+          setResult(`<strong>Recent Files (${result.recentFiles.length}):</strong><br>` +
+            result.recentFiles.map((f, i) => `${i + 1}. ${f}`).join('<br>'));
+        } else {
+          setResult('No recent files yet. Open a file to add it to the list.');
+        }
+      });
+
+      // Drag and Drop handlers
+      const dropZone = document.getElementById('drop-zone');
+      const droppedFilesDiv = document.getElementById('dropped-files');
+
+      if (dropZone) {
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+          dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          });
+        });
+
+        // Visual feedback on drag
+        ['dragenter', 'dragover'].forEach(eventName => {
+          dropZone.addEventListener(eventName, () => {
+            dropZone.style.borderColor = 'var(--accent-blue)';
+            dropZone.style.background = 'var(--bg-secondary)';
+          });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+          dropZone.addEventListener(eventName, () => {
+            dropZone.style.borderColor = 'var(--border)';
+            dropZone.style.background = 'var(--bg-tertiary)';
+          });
+        });
+
+        // Handle drop
+        dropZone.addEventListener('drop', async (e) => {
+          const files = Array.from(e.dataTransfer.files);
+
+          if (files.length > 0) {
+            droppedFilesDiv.innerHTML = `<div style="color: var(--text-primary); margin-bottom: 8px;"><strong>Dropped ${files.length} file(s):</strong></div>`;
+
+            for (const file of files) {
+              const fileInfo = document.createElement('div');
+              fileInfo.style.marginBottom = '4px';
+              fileInfo.style.padding = '4px 8px';
+              fileInfo.style.background = 'var(--bg-primary)';
+              fileInfo.style.borderRadius = '4px';
+              fileInfo.innerHTML = `📄 ${file.name} (${(file.size / 1024).toFixed(2)} KB) - ${file.type || 'unknown type'}`;
+              droppedFilesDiv.appendChild(fileInfo);
+
+              // Set as last selected file
+              lastSelectedFile = file.path;
+            }
+          }
+        });
+
+        // Click to open file dialog
+        dropZone.addEventListener('click', async () => {
+          const result = await window.electronAPI.openFilesDialog({
+            title: 'Select files'
+          });
+
+          if (!result.canceled && result.filePaths.length > 0) {
+            droppedFilesDiv.innerHTML = `<div style="color: var(--text-primary); margin-bottom: 8px;"><strong>Selected ${result.filePaths.length} file(s):</strong></div>`;
+
+            for (const filePath of result.filePaths) {
+              const metadata = await window.electronAPI.getFileMetadata(filePath);
+              if (metadata.success) {
+                const fileInfo = document.createElement('div');
+                fileInfo.style.marginBottom = '4px';
+                fileInfo.style.padding = '4px 8px';
+                fileInfo.style.background = 'var(--bg-primary)';
+                fileInfo.style.borderRadius = '4px';
+                fileInfo.innerHTML = `📄 ${metadata.metadata.name} (${(metadata.metadata.size / 1024).toFixed(2)} KB)`;
+                droppedFilesDiv.appendChild(fileInfo);
+
+                lastSelectedFile = filePath;
+              }
+            }
+          }
         });
       }
     });

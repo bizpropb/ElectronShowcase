@@ -1,10 +1,13 @@
 const { app, BrowserWindow, Menu, dialog, shell, Tray, nativeImage, Notification, ipcMain } = require('electron');
 const path = require('path');
+const fs = require('fs').promises;
 const notificationManager = require('./utils/notificationManager');
 
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow;
 let tray = null;
+let recentFiles = [];
+const MAX_RECENT_FILES = 10;
 
 /**
  * Create the application menu
@@ -506,6 +509,29 @@ ipcMain.handle('notification:get-stats', () => {
 });
 
 /**
+ * Recent Files Management
+ */
+function addToRecentFiles(filePath) {
+  // Remove if already exists
+  recentFiles = recentFiles.filter(f => f !== filePath);
+  // Add to beginning
+  recentFiles.unshift(filePath);
+  // Keep only MAX_RECENT_FILES
+  recentFiles = recentFiles.slice(0, MAX_RECENT_FILES);
+  // Update menu
+  createApplicationMenu();
+}
+
+function getRecentFiles() {
+  return recentFiles;
+}
+
+function clearRecentFiles() {
+  recentFiles = [];
+  createApplicationMenu();
+}
+
+/**
  * IPC Handlers for File Dialogs
  */
 
@@ -520,6 +546,11 @@ ipcMain.handle('dialog:openFile', async (event, options) => {
     ],
     properties: ['openFile', 'showHiddenFiles']
   });
+
+  // Add to recent files if not canceled
+  if (!result.canceled && result.filePaths.length > 0) {
+    addToRecentFiles(result.filePaths[0]);
+  }
 
   return {
     canceled: result.canceled,
@@ -575,4 +606,125 @@ ipcMain.handle('dialog:selectDirectory', async (event, options) => {
     canceled: result.canceled,
     filePaths: result.filePaths
   };
+});
+
+/**
+ * IPC Handlers for Message Boxes
+ */
+
+// Show message box - info, warning, error, question
+ipcMain.handle('dialog:showMessageBox', async (event, options) => {
+  const result = await dialog.showMessageBox(mainWindow, {
+    type: options?.type || 'info', // 'none', 'info', 'error', 'question', 'warning'
+    title: options?.title || 'Message',
+    message: options?.message || '',
+    detail: options?.detail || '',
+    buttons: options?.buttons || ['OK'],
+    defaultId: options?.defaultId || 0,
+    cancelId: options?.cancelId,
+    noLink: options?.noLink !== false
+  });
+
+  return {
+    response: result.response, // Index of clicked button
+    checkboxChecked: result.checkboxChecked
+  };
+});
+
+/**
+ * IPC Handlers for File Operations
+ */
+
+// Read file content
+ipcMain.handle('file:read', async (event, filePath) => {
+  try {
+    const content = await fs.readFile(filePath, 'utf-8');
+    const stats = await fs.stat(filePath);
+
+    return {
+      success: true,
+      content,
+      metadata: {
+        size: stats.size,
+        created: stats.birthtime,
+        modified: stats.mtime,
+        path: filePath,
+        name: path.basename(filePath),
+        extension: path.extname(filePath)
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+});
+
+// Write file content
+ipcMain.handle('file:write', async (event, filePath, content) => {
+  try {
+    await fs.writeFile(filePath, content, 'utf-8');
+    const stats = await fs.stat(filePath);
+
+    return {
+      success: true,
+      path: filePath,
+      size: stats.size
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+});
+
+// Get file metadata
+ipcMain.handle('file:getMetadata', async (event, filePath) => {
+  try {
+    const stats = await fs.stat(filePath);
+
+    return {
+      success: true,
+      metadata: {
+        size: stats.size,
+        created: stats.birthtime,
+        modified: stats.mtime,
+        accessed: stats.atime,
+        isFile: stats.isFile(),
+        isDirectory: stats.isDirectory(),
+        path: filePath,
+        name: path.basename(filePath),
+        directory: path.dirname(filePath),
+        extension: path.extname(filePath)
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+});
+
+// Check if file exists
+ipcMain.handle('file:exists', async (event, filePath) => {
+  try {
+    await fs.access(filePath);
+    return { exists: true };
+  } catch (error) {
+    return { exists: false };
+  }
+});
+
+// Get recent files
+ipcMain.handle('file:getRecent', () => {
+  return { recentFiles: getRecentFiles() };
+});
+
+// Clear recent files
+ipcMain.handle('file:clearRecent', () => {
+  clearRecentFiles();
+  return { success: true };
 });

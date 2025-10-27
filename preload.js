@@ -168,6 +168,63 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectDirectoryDialog: (options) => ipcRenderer.invoke('dialog:selectDirectory', options),
 
   /**
+   * Show message box with custom buttons
+   * @param {Object} options - Message box options
+   * @param {string} options.type - Type: 'none', 'info', 'error', 'question', 'warning'
+   * @param {string} options.title - Dialog title
+   * @param {string} options.message - Main message
+   * @param {string} [options.detail] - Additional detail text
+   * @param {Array<string>} [options.buttons] - Button labels
+   * @returns {Promise<Object>} Result with response (button index clicked)
+   */
+  showMessageBox: (options) => ipcRenderer.invoke('dialog:showMessageBox', options),
+
+  /**
+   * File Operations APIs
+   */
+
+  /**
+   * Read file content
+   * @param {string} filePath - Path to file
+   * @returns {Promise<Object>} Result with success, content, and metadata
+   */
+  readFile: (filePath) => ipcRenderer.invoke('file:read', filePath),
+
+  /**
+   * Write file content
+   * @param {string} filePath - Path to file
+   * @param {string} content - Content to write
+   * @returns {Promise<Object>} Result with success flag
+   */
+  writeFile: (filePath, content) => ipcRenderer.invoke('file:write', filePath, content),
+
+  /**
+   * Get file metadata
+   * @param {string} filePath - Path to file
+   * @returns {Promise<Object>} Result with metadata (size, dates, etc)
+   */
+  getFileMetadata: (filePath) => ipcRenderer.invoke('file:getMetadata', filePath),
+
+  /**
+   * Check if file exists
+   * @param {string} filePath - Path to file
+   * @returns {Promise<Object>} Result with exists boolean
+   */
+  fileExists: (filePath) => ipcRenderer.invoke('file:exists', filePath),
+
+  /**
+   * Get recent files list
+   * @returns {Promise<Object>} Result with recentFiles array
+   */
+  getRecentFiles: () => ipcRenderer.invoke('file:getRecent'),
+
+  /**
+   * Clear recent files list
+   * @returns {Promise<Object>} Result with success flag
+   */
+  clearRecentFiles: () => ipcRenderer.invoke('file:clearRecent'),
+
+  /**
    * IPC Communication Helper
    * Sends a message to the main process and waits for response
    * Uses centralized channel validation
