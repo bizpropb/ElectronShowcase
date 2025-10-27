@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, dialog, shell, Tray, nativeImage } = require('electron');
+const { app, BrowserWindow, Menu, dialog, shell, Tray, nativeImage, Notification, ipcMain } = require('electron');
 const path = require('path');
 
 // Keep a global reference of the window object to prevent garbage collection
@@ -399,4 +399,35 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
   // Cleanup tasks can be added here
   console.log('Application shutting down...');
+});
+
+/**
+ * IPC Handlers for Notifications
+ */
+ipcMain.handle('notification:show', (event, options) => {
+  if (!Notification.isSupported()) {
+    return { success: false, error: 'Notifications not supported' };
+  }
+
+  try {
+    const notification = new Notification({
+      title: options.title || 'Notification',
+      body: options.body || '',
+      icon: options.icon || path.join(__dirname, 'assets', 'tray-icon.png'),
+      silent: options.silent || false,
+      urgency: options.urgency || 'normal'
+    });
+
+    notification.on('click', () => {
+      if (mainWindow) {
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    });
+
+    notification.show();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 });

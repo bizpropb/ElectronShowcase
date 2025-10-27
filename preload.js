@@ -33,6 +33,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getVersion: () => ipcRenderer.invoke('app:get-version'),
 
   /**
+   * Show desktop notification
+   * @param {Object} options - Notification options
+   * @param {string} options.title - Notification title
+   * @param {string} options.body - Notification body text
+   * @param {boolean} options.silent - Whether to play sound
+   * @returns {Promise<Object>} Result object with success status
+   */
+  showNotification: (options) => ipcRenderer.invoke('notification:show', options),
+
+  /**
    * IPC Communication Helper
    * Sends a message to the main process and waits for response
    * @param {string} channel - IPC channel name
