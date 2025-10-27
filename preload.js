@@ -1,4 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron');
+const { isValidChannel, getChannelsByDirection } = require('./utils/ipcChannels');
 
 /**
  * Preload script for secure IPC communication
@@ -10,6 +11,10 @@ const { contextBridge, ipcRenderer } = require('electron');
  * Security: With contextIsolation enabled, this is the ONLY way for the
  * renderer to communicate with the main process.
  */
+
+// Get all valid renderer-to-main channels
+const validInvokeChannels = getChannelsByDirection('renderer-to-main');
+const validEventChannels = getChannelsByDirection('main-to-renderer');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   /**
@@ -165,19 +170,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   /**
    * IPC Communication Helper
    * Sends a message to the main process and waits for response
+   * Uses centralized channel validation
    * @param {string} channel - IPC channel name
    * @param {any} data - Data to send
    * @returns {Promise<any>} Response from main process
    */
   invoke: (channel, data) => {
-    // Whitelist of allowed channels for security
-    const validChannels = [
-      'app:get-version',
-      'system:info',
-      'notification:show'
-    ];
-
-    if (validChannels.includes(channel)) {
+    // Use centralized channel validation
+    if (validInvokeChannels.includes(channel) || isValidChannel(channel)) {
       return ipcRenderer.invoke(channel, data);
     } else {
       console.error(`Invalid IPC channel: ${channel}`);
@@ -187,18 +187,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   /**
    * Event listener registration
+   * Uses centralized channel validation
    * @param {string} channel - Event channel name
    * @param {Function} callback - Callback function
    */
   on: (channel, callback) => {
-    const validChannels = [
-      'notification:received',
-      'notification:reply-received',
-      'notification:action-clicked',
-      'update:status'
-    ];
-
-    if (validChannels.includes(channel)) {
+    // Use centralized channel validation for main-to-renderer channels
+    if (validEventChannels.includes(channel)) {
       ipcRenderer.on(channel, (event, ...args) => callback(...args));
     } else {
       console.error(`Invalid event channel: ${channel}`);
@@ -211,14 +206,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
    * @param {Function} callback - Callback function to remove
    */
   off: (channel, callback) => {
-    const validChannels = [
-      'notification:received',
-      'notification:reply-received',
-      'notification:action-clicked',
-      'update:status'
-    ];
-
-    if (validChannels.includes(channel)) {
+    // Use centralized channel validation
+    if (validEventChannels.includes(channel)) {
       ipcRenderer.removeListener(channel, callback);
     }
   }
