@@ -419,15 +419,66 @@
           <span class="card-status ready">✓ Ready</span>
         </div>
 
-        <div class="card">
+        <div class="card" id="shell-card" style="grid-column: span 2;">
           <div class="card-header">
             <span class="card-icon">🚀</span>
-            <h3 class="card-title">Shell Integration</h3>
+            <h3 class="card-title">Shell Integration & Protocol Handler</h3>
           </div>
           <p class="card-description">
-            Open external URLs, reveal files, and execute shell commands.
+            Open URLs in browser, reveal files in explorer, move to trash, play beeps, and handle custom protocol URLs.
           </p>
-          <span class="card-status coming-soon">Coming Soon</span>
+
+          <!-- URL Operations -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">Open External URLs</h4>
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: var(--space-2); margin-bottom: var(--space-2);">
+              <input type="text" id="shell-url" placeholder="https://example.com" value="https://www.electronjs.org" style="padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary);">
+              <button class="btn btn-primary" id="shell-open-url">Open in Browser</button>
+            </div>
+          </div>
+
+          <!-- File Operations -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">File Operations</h4>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); margin-bottom: var(--space-2);">
+              <button class="btn" id="shell-select-file" style="background: var(--bg-tertiary);">Select File</button>
+              <button class="btn btn-primary" id="shell-open-file">Open with Default App</button>
+              <button class="btn" id="shell-show-in-folder" style="background: var(--accent-blue);">Show in Folder</button>
+              <button class="btn btn-warning" id="shell-move-to-trash">Move to Trash</button>
+            </div>
+            <div id="shell-selected-file" style="font-size: var(--font-size-xs); color: var(--text-secondary); padding: 8px; background: var(--bg-tertiary); border-radius: 4px;">
+              No file selected (click "Select File" to choose one)
+            </div>
+          </div>
+
+          <!-- System Sounds & Protocol -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">System Sounds & Protocol Handler</h4>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-2);">
+              <button class="btn" id="shell-beep" style="background: var(--accent-green);">🔔 Play System Beep</button>
+              <button class="btn" id="shell-test-protocol" style="background: var(--accent-blue);">🔗 Test Protocol Handler</button>
+            </div>
+          </div>
+
+          <!-- Protocol URL Examples -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">Custom Protocol (electronshowcase://)</h4>
+            <div style="font-size: var(--font-size-xs); color: var(--text-secondary); padding: var(--space-3); background: var(--bg-tertiary); border-radius: 6px;">
+              <div style="margin-bottom: 8px;"><strong>Example URLs:</strong></div>
+              <div style="font-family: monospace; margin-bottom: 4px;">• electronshowcase://feature/notifications</div>
+              <div style="font-family: monospace; margin-bottom: 4px;">• electronshowcase://action/screenshot</div>
+              <div style="font-family: monospace;">• electronshowcase://open?file=/path/to/file</div>
+              <div style="margin-top: 8px; color: var(--text-primary);">Click "Test Protocol Handler" to try it! The app will handle the URL even if closed.</div>
+            </div>
+          </div>
+
+          <!-- Result Display -->
+          <div id="shell-result" style="margin-top: var(--space-3); padding: var(--space-3); background: var(--bg-tertiary); border-radius: 6px; font-size: var(--font-size-xs); color: var(--text-secondary); min-height: 60px;">
+            <div style="color: var(--text-primary); margin-bottom: var(--space-2);">Shell Result:</div>
+            <div id="shell-result-content">Ready to interact with system shell...</div>
+          </div>
+
+          <span class="card-status ready">✓ Ready</span>
         </div>
 
         <div class="card">
@@ -512,7 +563,7 @@
     <!-- Footer -->
     <footer class="footer">
       <p>Built with Electron • Node.js <span id="node-version">...</span> • Chrome <span id="chrome-version">...</span></p>
-      <p style="margin-top: var(--space-2);">Step 9 Complete: Clipboard Integration ✓</p>
+      <p style="margin-top: var(--space-2);">Step 10 Complete: Shell Integration & Protocol Handler ✓</p>
     </footer>
   </div>
 
@@ -1401,6 +1452,174 @@
         } else {
           setClipResult(`✗ Error: ${result.error}`, true);
         }
+      });
+
+      // Shell Integration handlers
+      const shellResultContent = document.getElementById('shell-result-content');
+      const shellSelectedFileDiv = document.getElementById('shell-selected-file');
+      let selectedFilePath = null;
+
+      function setShellResult(text, isError = false) {
+        shellResultContent.innerHTML = text;
+        shellResultContent.style.color = isError ? 'var(--accent-red)' : 'var(--text-secondary)';
+      }
+
+      // Open URL in browser
+      document.getElementById('shell-open-url')?.addEventListener('click', async () => {
+        const url = document.getElementById('shell-url').value;
+        if (!url) {
+          setShellResult('⚠ Please enter a URL', true);
+          return;
+        }
+
+        const result = await window.electronAPI.shellOpenExternal(url);
+        if (result.success) {
+          setShellResult(`✓ Opened in default browser: <strong>${result.url}</strong>`);
+        } else {
+          setShellResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      // Select file for shell operations
+      document.getElementById('shell-select-file')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.openFileDialog({
+          title: 'Select a file for shell operations',
+          filters: [{ name: 'All Files', extensions: ['*'] }]
+        });
+
+        if (!result.canceled && result.filePaths.length > 0) {
+          selectedFilePath = result.filePaths[0];
+          shellSelectedFileDiv.innerHTML = `<strong>Selected:</strong> ${selectedFilePath}`;
+          shellSelectedFileDiv.style.color = 'var(--text-primary)';
+          setShellResult(`✓ File selected: ${selectedFilePath}`);
+        } else {
+          setShellResult('File selection canceled');
+        }
+      });
+
+      // Open file with default application
+      document.getElementById('shell-open-file')?.addEventListener('click', async () => {
+        if (!selectedFilePath) {
+          setShellResult('⚠ Please select a file first', true);
+          return;
+        }
+
+        const result = await window.electronAPI.shellOpenPath(selectedFilePath);
+        if (result.success) {
+          setShellResult(`✓ Opened with default application: <strong>${result.path}</strong>`);
+        } else {
+          setShellResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      // Show file in folder
+      document.getElementById('shell-show-in-folder')?.addEventListener('click', async () => {
+        if (!selectedFilePath) {
+          setShellResult('⚠ Please select a file first', true);
+          return;
+        }
+
+        const result = await window.electronAPI.shellShowItemInFolder(selectedFilePath);
+        if (result.success) {
+          setShellResult(`✓ Revealed in file explorer: <strong>${result.path}</strong>`);
+        } else {
+          setShellResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      // Move file to trash
+      document.getElementById('shell-move-to-trash')?.addEventListener('click', async () => {
+        if (!selectedFilePath) {
+          setShellResult('⚠ Please select a file first', true);
+          return;
+        }
+
+        // Confirm before trashing
+        const confirmResult = await window.electronAPI.showMessageBox({
+          type: 'warning',
+          title: 'Move to Trash',
+          message: 'Are you sure you want to move this file to trash?',
+          detail: selectedFilePath,
+          buttons: ['Move to Trash', 'Cancel'],
+          defaultId: 1
+        });
+
+        if (confirmResult.response === 0) {
+          const result = await window.electronAPI.shellMoveItemToTrash(selectedFilePath);
+          if (result.success) {
+            setShellResult(`✓ Moved to trash: <strong>${result.path}</strong>`);
+            selectedFilePath = null;
+            shellSelectedFileDiv.innerHTML = 'File was moved to trash. Select another file.';
+            shellSelectedFileDiv.style.color = 'var(--text-secondary)';
+          } else {
+            setShellResult(`✗ Error: ${result.error}`, true);
+          }
+        } else {
+          setShellResult('Trash operation canceled');
+        }
+      });
+
+      // Play system beep
+      document.getElementById('shell-beep')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.shellBeep();
+        if (result.success) {
+          setShellResult('✓ System beep played! 🔔');
+        } else {
+          setShellResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      // Test protocol handler
+      document.getElementById('shell-test-protocol')?.addEventListener('click', async () => {
+        const testUrl = 'electronshowcase://test/demo?source=ui&timestamp=' + Date.now();
+
+        // Create a temporary HTML file to trigger the protocol
+        const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head><title>Protocol Test</title></head>
+<body>
+<h1>Protocol Handler Test</h1>
+<p>Click the link below to test the custom protocol handler:</p>
+<p><a href="${testUrl}">electronshowcase://test/demo</a></p>
+<script>
+  // Auto-click after 1 second
+  setTimeout(() => {
+    document.querySelector('a').click();
+  }, 1000);
+<\/script>
+</body>
+</html>`;
+
+        const saveResult = await window.electronAPI.saveFileDialog({
+          title: 'Save Protocol Test HTML',
+          defaultPath: 'protocol-test.html',
+          filters: [{ name: 'HTML Files', extensions: ['html'] }]
+        });
+
+        if (!saveResult.canceled && saveResult.filePath) {
+          await window.electronAPI.writeFile(saveResult.filePath, htmlContent);
+
+          // Open the HTML file in default browser
+          const openResult = await window.electronAPI.shellOpenPath(saveResult.filePath);
+
+          if (openResult.success) {
+            setShellResult(`✓ Protocol test page opened!<br>` +
+              `When you click the link, this app will be launched with:<br>` +
+              `<div style="margin-top: 8px; padding: 8px; background: var(--bg-primary); border-radius: 4px; font-family: monospace;">${testUrl}</div>`);
+          }
+        } else {
+          setShellResult('Protocol test canceled');
+        }
+      });
+
+      // Listen for protocol URL events
+      window.electronAPI.on('protocol:url-received', (data) => {
+        console.log('Protocol URL received:', data);
+        setShellResult(`✓ Protocol URL Received!<br>` +
+          `<strong>Action:</strong> ${data.action}<br>` +
+          `<strong>Params:</strong> ${data.params}<br>` +
+          `<strong>Full URL:</strong> <div style="margin-top: 8px; padding: 8px; background: var(--bg-primary); border-radius: 4px; font-family: monospace;">${data.url}</div>`);
       });
     });
   </script>

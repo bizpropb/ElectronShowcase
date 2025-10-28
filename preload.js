@@ -446,6 +446,44 @@ contextBridge.exposeInMainWorld('electronAPI', {
   clipboardGetStats: () => ipcRenderer.invoke('clipboard:getStats'),
 
   /**
+   * Shell Integration APIs
+   */
+
+  /**
+   * Open URL in default browser
+   * @param {string} url - URL to open (http/https only)
+   * @returns {Promise<Object>} Result with success flag
+   */
+  shellOpenExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
+
+  /**
+   * Open file in default application
+   * @param {string} filePath - Path to file
+   * @returns {Promise<Object>} Result with success flag
+   */
+  shellOpenPath: (filePath) => ipcRenderer.invoke('shell:openPath', filePath),
+
+  /**
+   * Show file in file explorer
+   * @param {string} filePath - Path to file
+   * @returns {Promise<Object>} Result with success flag
+   */
+  shellShowItemInFolder: (filePath) => ipcRenderer.invoke('shell:showItemInFolder', filePath),
+
+  /**
+   * Move file to trash (safe delete)
+   * @param {string} filePath - Path to file
+   * @returns {Promise<Object>} Result with success flag
+   */
+  shellMoveItemToTrash: (filePath) => ipcRenderer.invoke('shell:moveItemToTrash', filePath),
+
+  /**
+   * Play system beep sound
+   * @returns {Promise<Object>} Result with success flag
+   */
+  shellBeep: () => ipcRenderer.invoke('shell:beep'),
+
+  /**
    * IPC Communication Helper
    * Sends a message to the main process and waits for response
    * Uses centralized channel validation

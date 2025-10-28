@@ -371,10 +371,102 @@ function createMainWindow() {
 }
 
 /**
+ * Register custom protocol handler
+ * Allows the app to handle URLs like: electronshowcase://action/param
+ */
+function registerProtocolHandler() {
+  // Register protocol as standard scheme
+  if (process.defaultApp) {
+    if (process.argv.length >= 2) {
+      app.setAsDefaultProtocolClient('electronshowcase', process.execPath, [path.resolve(process.argv[1])]);
+    }
+  } else {
+    app.setAsDefaultProtocolClient('electronshowcase');
+  }
+
+  // Only enforce single instance in production (not during development)
+  const isDev = process.defaultApp || /[\\/]electron-prebuilt[\\/]/.test(process.execPath);
+
+  if (!isDev) {
+    // Handle protocol URLs on Windows and Linux (production only)
+    const gotTheLock = app.requestSingleInstanceLock();
+
+    if (!gotTheLock) {
+      app.quit();
+      return;
+    } else {
+      app.on('second-instance', (event, commandLine, workingDirectory) => {
+        // Someone tried to run a second instance, focus our window instead
+        if (mainWindow) {
+          if (mainWindow.isMinimized()) mainWindow.restore();
+          mainWindow.focus();
+
+          // Protocol URL will be in commandLine
+          const url = commandLine.find((arg) => arg.startsWith('electronshowcase://'));
+          if (url) {
+            handleProtocolUrl(url);
+          }
+        }
+      });
+    }
+  }
+
+  // Handle protocol URLs on macOS
+  app.on('open-url', (event, url) => {
+    event.preventDefault();
+    handleProtocolUrl(url);
+  });
+}
+
+/**
+ * Handle custom protocol URLs
+ * @param {string} url - The protocol URL (e.g., electronshowcase://feature/notifications)
+ */
+function handleProtocolUrl(url) {
+  console.log('Protocol URL received:', url);
+
+  try {
+    const urlObj = new URL(url);
+    const action = urlObj.hostname; // e.g., 'feature', 'action'
+    const params = urlObj.pathname.substring(1); // Remove leading slash
+    const searchParams = urlObj.searchParams;
+
+    console.log('Protocol action:', action);
+    console.log('Protocol params:', params);
+    console.log('Protocol search:', Object.fromEntries(searchParams));
+
+    // Send to renderer if window exists
+    if (mainWindow) {
+      mainWindow.webContents.send('protocol:url-received', {
+        url,
+        action,
+        params,
+        searchParams: Object.fromEntries(searchParams)
+      });
+
+      // Show and focus window
+      mainWindow.show();
+      mainWindow.focus();
+
+      // Show a notification about the protocol action
+      const notification = new Notification({
+        title: 'Deep Link Received',
+        body: `Action: ${action}, Params: ${params}`,
+        silent: false
+      });
+      notification.show();
+    }
+  } catch (error) {
+    console.error('Error handling protocol URL:', error);
+  }
+}
+
+/**
  * App lifecycle: Ready
  * This event fires when Electron has finished initialization
  */
 app.whenReady().then(() => {
+  registerProtocolHandler();
   createApplicationMenu();
   createTray();
   setupNotificationHandlers();
@@ -1058,6 +1150,115 @@ ipcMain.handle('clipboard:getStats', () => {
   try {
     const stats = clipboardManager.getStats();
     return { success: true, stats };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * IPC Handlers for Shell Integration
+ */
+
+// Open external URL in default browser
+ipcMain.handle('shell:openExternal', async (event, url) => {
+  try {
+    // Validate URL
+    if (!url || typeof url !== 'string') {
+      return { success: false, error: 'Invalid URL' };
+    }
+
+    // Only allow http and https protocols for security
+    const urlObj = new URL(url);
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      return { success: false, error: 'Only HTTP and HTTPS URLs are allowed' };
+    }
+
+    await shell.openExternal(url);
+    return { success: true, url };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Open file in default application
+ipcMain.handle('shell:openPath', async (event, filePath) => {
+  try {
+    if (!filePath || typeof filePath !== 'string') {
+      return { success: false, error: 'Invalid file path' };
+    }
+
+    // Check if file exists
+    try {
+      await fs.access(filePath);
+    } catch (err) {
+      return { success: false, error: 'File does not exist' };
+    }
+
+    const result = await shell.openPath(filePath);
+
+    // openPath returns empty string on success, error message on failure
+    if (result === '') {
+      return { success: true, path: filePath };
+    } else {
+      return { success: false, error: result };
+    }
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Show item in file explorer
+ipcMain.handle('shell:showItemInFolder', async (event, filePath) => {
+  try {
+    if (!filePath || typeof filePath !== 'string') {
+      return { success: false, error: 'Invalid file path' };
+    }
+
+    // Check if file exists
+    try {
+      await fs.access(filePath);
+    } catch (err) {
+      return { success: false, error: 'File does not exist' };
+    }
+
+    shell.showItemInFolder(filePath);
+    return { success: true, path: filePath };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Move item to trash
+ipcMain.handle('shell:moveItemToTrash', async (event, filePath) => {
+  try {
+    if (!filePath || typeof filePath !== 'string') {
+      return { success: false, error: 'Invalid file path' };
+    }
+
+    // Check if file exists
+    try {
+      await fs.access(filePath);
+    } catch (err) {
+      return { success: false, error: 'File does not exist' };
+    }
+
+    const success = await shell.trashItem(filePath);
+
+    if (success) {
+      return { success: true, path: filePath };
+    } else {
+      return { success: false, error: 'Failed to move item to trash' };
+    }
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Play system beep sound
+ipcMain.handle('shell:beep', () => {
+  try {
+    shell.beep();
+    return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
   }

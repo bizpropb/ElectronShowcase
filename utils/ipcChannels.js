@@ -177,6 +177,38 @@ const IPC_CHANNELS = {
     description: 'Clear entire store',
     direction: 'renderer-to-main',
     requiresResponse: true
+  },
+
+  // Shell Integration
+  'shell:openExternal': {
+    description: 'Open URL in default browser',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'shell:openPath': {
+    description: 'Open file in default application',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'shell:showItemInFolder': {
+    description: 'Show item in file explorer',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'shell:moveItemToTrash': {
+    description: 'Move item to trash',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'shell:beep': {
+    description: 'Play system beep sound',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'protocol:url-received': {
+    description: 'Custom protocol URL received event',
+    direction: 'main-to-renderer',
+    requiresResponse: false
   }
 };
 
