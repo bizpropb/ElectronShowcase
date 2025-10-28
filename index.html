@@ -360,15 +360,63 @@
       </div>
 
       <div class="features-grid">
-        <div class="card">
+        <div class="card" id="clipboard-card" style="grid-column: span 2;">
           <div class="card-header">
             <span class="card-icon">📋</span>
-            <h3 class="card-title">Clipboard</h3>
+            <h3 class="card-title">Clipboard Manager</h3>
           </div>
           <p class="card-description">
-            Full clipboard access with multiple formats and history tracking.
+            Multi-format clipboard with text, HTML, RTF, images, history tracking, and monitoring.
           </p>
-          <span class="card-status coming-soon">Coming Soon</span>
+
+          <!-- Read/Write Operations -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">Read & Write</h4>
+            <div style="display: grid; grid-template-columns: 1fr; gap: var(--space-2); margin-bottom: var(--space-2);">
+              <textarea id="clip-text" placeholder="Enter text to copy..." style="padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary); resize: vertical; min-height: 80px; font-family: monospace;"></textarea>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2);">
+              <button class="btn btn-success" id="clip-copy-text">Copy Text</button>
+              <button class="btn btn-primary" id="clip-read-text">Read Text</button>
+              <button class="btn" id="clip-read-all" style="background: var(--bg-tertiary);">Read All Formats</button>
+              <button class="btn btn-warning" id="clip-clear">Clear Clipboard</button>
+            </div>
+          </div>
+
+          <!-- Format Detection & Image Preview -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">Format Detection & Preview</h4>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2);">
+              <button class="btn" id="clip-detect-formats" style="background: var(--accent-blue);">Detect Formats</button>
+              <button class="btn" id="clip-read-image" style="background: var(--accent-green);">Read Image</button>
+              <button class="btn" id="clip-read-html" style="background: var(--accent-yellow);">Read HTML</button>
+            </div>
+            <!-- Image Preview -->
+            <div id="clip-image-preview" style="margin-top: var(--space-3); display: none;">
+              <img id="clip-preview-img" style="max-width: 100%; max-height: 200px; border-radius: 4px; border: 1px solid var(--border);">
+            </div>
+          </div>
+
+          <!-- History & Monitoring -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--space-2); color: var(--text-secondary); margin-bottom: var(--space-2);">History & Monitoring</h4>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2);">
+              <button class="btn" id="clip-view-history" style="background: var(--bg-tertiary);">View History</button>
+              <button class="btn" id="clip-clear-history" style="background: var(--bg-tertiary);">Clear History</button>
+              <button class="btn" id="clip-monitor-toggle" style="background: var(--bg-tertiary);">
+                <span id="clip-monitor-status">Start Monitoring</span>
+              </button>
+              <button class="btn" id="clip-get-stats" style="background: var(--bg-tertiary);">Get Stats</button>
+            </div>
+          </div>
+
+          <!-- Result Display -->
+          <div id="clip-result" style="margin-top: var(--space-3); padding: var(--space-3); background: var(--bg-tertiary); border-radius: 6px; font-size: var(--font-size-xs); color: var(--text-secondary); max-height: 200px; overflow-y: auto;">
+            <div style="color: var(--text-primary); margin-bottom: var(--space-2);">Clipboard Result:</div>
+            <div id="clip-result-content">Ready to manage clipboard...</div>
+          </div>
+
+          <span class="card-status ready">✓ Ready</span>
         </div>
 
         <div class="card">
@@ -464,7 +512,7 @@
     <!-- Footer -->
     <footer class="footer">
       <p>Built with Electron • Node.js <span id="node-version">...</span> • Chrome <span id="chrome-version">...</span></p>
-      <p style="margin-top: var(--space-2);">Step 8 Complete: Persistent Storage - electron-store Integration ✓</p>
+      <p style="margin-top: var(--space-2);">Step 9 Complete: Clipboard Integration ✓</p>
     </footer>
   </div>
 
@@ -1170,6 +1218,190 @@
 
       // Update stats periodically
       setInterval(updateStoreStats, 5000);
+
+      // Clipboard handlers
+      const clipResultContent = document.getElementById('clip-result-content');
+      const clipTextArea = document.getElementById('clip-text');
+      const clipImagePreview = document.getElementById('clip-image-preview');
+      const clipPreviewImg = document.getElementById('clip-preview-img');
+      let clipMonitoring = false;
+
+      function setClipResult(text, isError = false) {
+        clipResultContent.innerHTML = text;
+        clipResultContent.style.color = isError ? 'var(--accent-red)' : 'var(--text-secondary)';
+      }
+
+      // Copy text to clipboard
+      document.getElementById('clip-copy-text')?.addEventListener('click', async () => {
+        const text = clipTextArea.value;
+        if (!text) {
+          setClipResult('⚠ Please enter text to copy', true);
+          return;
+        }
+
+        const result = await window.electronAPI.clipboardWriteText(text);
+        if (result.success) {
+          setClipResult(`✓ Copied to clipboard: <strong>${text.length}</strong> characters`);
+        } else {
+          setClipResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      // Read text from clipboard
+      document.getElementById('clip-read-text')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.clipboardReadText();
+        if (result.success) {
+          clipTextArea.value = result.text;
+          setClipResult(`✓ Read <strong>${result.text.length}</strong> characters from clipboard`);
+        } else {
+          setClipResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      // Read all formats
+      document.getElementById('clip-read-all')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.clipboardReadAll();
+        if (result.success) {
+          const data = result.data;
+          let output = `<strong>Available Formats:</strong> ${data.formats.join(', ')}<br><br>`;
+
+          if (data.content.text) {
+            output += `<strong>Text:</strong> ${data.content.text.substring(0, 100)}${data.content.text.length > 100 ? '...' : ''}<br>`;
+          }
+          if (data.content.html) {
+            output += `<strong>HTML:</strong> ${data.content.html.substring(0, 100)}...<br>`;
+          }
+          if (data.content.image) {
+            output += `<strong>Image:</strong> ${data.content.image.size.width}x${data.content.image.size.height}<br>`;
+          }
+
+          setClipResult(output);
+        } else {
+          setClipResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      // Clear clipboard
+      document.getElementById('clip-clear')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.clipboardClear();
+        if (result.success) {
+          setClipResult('✓ Clipboard cleared');
+        } else {
+          setClipResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      // Detect formats
+      document.getElementById('clip-detect-formats')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.clipboardAvailableFormats();
+        if (result.success) {
+          const hasText = await window.electronAPI.clipboardHas('text');
+          const hasImage = await window.electronAPI.clipboardHas('image');
+          const hasHTML = await window.electronAPI.clipboardHas('html');
+
+          setClipResult(`<strong>Detected Formats:</strong><br>` +
+            `${result.formats.join(', ')}<br><br>` +
+            `Text: ${hasText.has ? '✓' : '✗'} | ` +
+            `HTML: ${hasHTML.has ? '✓' : '✗'} | ` +
+            `Image: ${hasImage.has ? '✓' : '✗'}`);
+        } else {
+          setClipResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      // Read image
+      document.getElementById('clip-read-image')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.clipboardReadImage();
+        if (result.success && result.image) {
+          clipPreviewImg.src = result.image.dataURL;
+          clipImagePreview.style.display = 'block';
+          setClipResult(`✓ Image loaded: <strong>${result.image.size.width}x${result.image.size.height}</strong>`);
+        } else if (result.success && !result.image) {
+          clipImagePreview.style.display = 'none';
+          setClipResult('⚠ No image in clipboard');
+        } else {
+          setClipResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      // Read HTML
+      document.getElementById('clip-read-html')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.clipboardReadHTML();
+        if (result.success && result.html) {
+          setClipResult(`<strong>HTML Content:</strong><div style="margin-top: 8px; padding: 8px; background: var(--bg-primary); border-radius: 4px; font-family: monospace; white-space: pre-wrap; max-height: 150px; overflow-y: auto;">${result.html.substring(0, 500)}${result.html.length > 500 ? '...' : ''}</div>`);
+        } else {
+          setClipResult('⚠ No HTML in clipboard');
+        }
+      });
+
+      // View history
+      document.getElementById('clip-view-history')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.clipboardGetHistory(10);
+        if (result.success && result.history.length > 0) {
+          let output = `<strong>Clipboard History (${result.history.length} items):</strong><br><br>`;
+          result.history.forEach((item, i) => {
+            const time = new Date(item.timestamp).toLocaleTimeString();
+            let content = '';
+            if (item.type === 'text') {
+              content = item.content.substring(0, 50) + (item.content.length > 50 ? '...' : '');
+            } else if (item.type === 'image') {
+              content = `Image ${item.size.width}x${item.size.height}`;
+            } else {
+              content = item.type.toUpperCase();
+            }
+            output += `${i + 1}. [${time}] ${item.type}: ${content}<br>`;
+          });
+          setClipResult(output);
+        } else {
+          setClipResult('No clipboard history yet');
+        }
+      });
+
+      // Clear history
+      document.getElementById('clip-clear-history')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.clipboardClearHistory();
+        if (result.success) {
+          setClipResult('✓ Clipboard history cleared');
+        } else {
+          setClipResult(`✗ Error: ${result.error}`, true);
+        }
+      });
+
+      // Toggle monitoring
+      document.getElementById('clip-monitor-toggle')?.addEventListener('click', async () => {
+        if (!clipMonitoring) {
+          const result = await window.electronAPI.clipboardStartMonitoring(1000);
+          if (result.success) {
+            clipMonitoring = true;
+            document.getElementById('clip-monitor-status').textContent = 'Stop Monitoring 🔴';
+            document.getElementById('clip-monitor-toggle').style.background = 'var(--accent-red)';
+            setClipResult('✓ Clipboard monitoring started (auto-tracking changes)');
+          }
+        } else {
+          const result = await window.electronAPI.clipboardStopMonitoring();
+          if (result.success) {
+            clipMonitoring = false;
+            document.getElementById('clip-monitor-status').textContent = 'Start Monitoring';
+            document.getElementById('clip-monitor-toggle').style.background = 'var(--bg-tertiary)';
+            setClipResult('✓ Clipboard monitoring stopped');
+          }
+        }
+      });
+
+      // Get stats
+      document.getElementById('clip-get-stats')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.clipboardGetStats();
+        if (result.success) {
+          const stats = result.stats;
+          setClipResult(`<strong>Clipboard Statistics:</strong><br>` +
+            `History Size: ${stats.historySize}/10<br>` +
+            `Monitoring: ${stats.monitoring ? 'Active ✓' : 'Inactive'}<br>` +
+            `Current Formats: ${stats.currentFormats.join(', ')}<br>` +
+            `Has Content: ${stats.hasContent ? 'Yes ✓' : 'No'}`);
+        } else {
+          setClipResult(`✗ Error: ${result.error}`, true);
+        }
+      });
     });
   </script>
 </body>

@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const notificationManager = require('./utils/notificationManager');
 const storeManager = require('./utils/storeManager');
+const clipboardManager = require('./utils/clipboardManager');
 
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow;
@@ -863,6 +864,200 @@ ipcMain.handle('store:deleteSecret', (event, key) => {
   try {
     storeManager.deleteSecret(key);
     return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * IPC Handlers for Clipboard Operations
+ */
+
+// Read text from clipboard
+ipcMain.handle('clipboard:readText', () => {
+  try {
+    const text = clipboardManager.readText();
+    return { success: true, text };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Write text to clipboard
+ipcMain.handle('clipboard:writeText', (event, text) => {
+  try {
+    clipboardManager.writeText(text);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Read HTML from clipboard
+ipcMain.handle('clipboard:readHTML', () => {
+  try {
+    const html = clipboardManager.readHTML();
+    return { success: true, html };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Write HTML to clipboard
+ipcMain.handle('clipboard:writeHTML', (event, html) => {
+  try {
+    clipboardManager.writeHTML(html);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Read RTF from clipboard
+ipcMain.handle('clipboard:readRTF', () => {
+  try {
+    const rtf = clipboardManager.readRTF();
+    return { success: true, rtf };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Write RTF to clipboard
+ipcMain.handle('clipboard:writeRTF', (event, rtf) => {
+  try {
+    clipboardManager.writeRTF(rtf);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Read image from clipboard
+ipcMain.handle('clipboard:readImage', () => {
+  try {
+    const image = clipboardManager.readImage();
+    return { success: true, image };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Write image to clipboard
+ipcMain.handle('clipboard:writeImage', (event, dataURL) => {
+  try {
+    clipboardManager.writeImage(dataURL);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get available formats
+ipcMain.handle('clipboard:availableFormats', () => {
+  try {
+    const formats = clipboardManager.availableFormats();
+    return { success: true, formats };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Check if clipboard has format
+ipcMain.handle('clipboard:has', (event, format) => {
+  try {
+    const has = clipboardManager.has(format);
+    return { success: true, has };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Read all clipboard content
+ipcMain.handle('clipboard:readAll', () => {
+  try {
+    const data = clipboardManager.readAll();
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Clear clipboard
+ipcMain.handle('clipboard:clear', () => {
+  try {
+    clipboardManager.clear();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get clipboard history
+ipcMain.handle('clipboard:getHistory', (event, limit) => {
+  try {
+    const history = clipboardManager.getHistory(limit);
+    return { success: true, history };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Clear clipboard history
+ipcMain.handle('clipboard:clearHistory', () => {
+  try {
+    clipboardManager.clearHistory();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Restore from history
+ipcMain.handle('clipboard:restoreFromHistory', (event, id) => {
+  try {
+    const success = clipboardManager.restoreFromHistory(id);
+    return { success };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Start monitoring
+ipcMain.handle('clipboard:startMonitoring', (event, interval) => {
+  try {
+    clipboardManager.startMonitoring(interval);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Stop monitoring
+ipcMain.handle('clipboard:stopMonitoring', () => {
+  try {
+    clipboardManager.stopMonitoring();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get monitoring status
+ipcMain.handle('clipboard:isMonitoring', () => {
+  try {
+    const monitoring = clipboardManager.isMonitoring();
+    return { success: true, monitoring };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get clipboard statistics
+ipcMain.handle('clipboard:getStats', () => {
+  try {
+    const stats = clipboardManager.getStats();
+    return { success: true, stats };
   } catch (error) {
     return { success: false, error: error.message };
   }

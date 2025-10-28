@@ -320,6 +320,132 @@ contextBridge.exposeInMainWorld('electronAPI', {
   storeDeleteSecret: (key) => ipcRenderer.invoke('store:deleteSecret', key),
 
   /**
+   * Clipboard APIs
+   */
+
+  /**
+   * Read text from clipboard
+   * @returns {Promise<Object>} Result with text
+   */
+  clipboardReadText: () => ipcRenderer.invoke('clipboard:readText'),
+
+  /**
+   * Write text to clipboard
+   * @param {string} text - Text to write
+   * @returns {Promise<Object>} Result with success flag
+   */
+  clipboardWriteText: (text) => ipcRenderer.invoke('clipboard:writeText', text),
+
+  /**
+   * Read HTML from clipboard
+   * @returns {Promise<Object>} Result with html
+   */
+  clipboardReadHTML: () => ipcRenderer.invoke('clipboard:readHTML'),
+
+  /**
+   * Write HTML to clipboard
+   * @param {string} html - HTML to write
+   * @returns {Promise<Object>} Result with success flag
+   */
+  clipboardWriteHTML: (html) => ipcRenderer.invoke('clipboard:writeHTML', html),
+
+  /**
+   * Read RTF from clipboard
+   * @returns {Promise<Object>} Result with rtf
+   */
+  clipboardReadRTF: () => ipcRenderer.invoke('clipboard:readRTF'),
+
+  /**
+   * Write RTF to clipboard
+   * @param {string} rtf - RTF to write
+   * @returns {Promise<Object>} Result with success flag
+   */
+  clipboardWriteRTF: (rtf) => ipcRenderer.invoke('clipboard:writeRTF', rtf),
+
+  /**
+   * Read image from clipboard
+   * @returns {Promise<Object>} Result with image data
+   */
+  clipboardReadImage: () => ipcRenderer.invoke('clipboard:readImage'),
+
+  /**
+   * Write image to clipboard
+   * @param {string} dataURL - Image data URL
+   * @returns {Promise<Object>} Result with success flag
+   */
+  clipboardWriteImage: (dataURL) => ipcRenderer.invoke('clipboard:writeImage', dataURL),
+
+  /**
+   * Get available clipboard formats
+   * @returns {Promise<Object>} Result with formats array
+   */
+  clipboardAvailableFormats: () => ipcRenderer.invoke('clipboard:availableFormats'),
+
+  /**
+   * Check if clipboard has specific format
+   * @param {string} format - Format to check
+   * @returns {Promise<Object>} Result with has boolean
+   */
+  clipboardHas: (format) => ipcRenderer.invoke('clipboard:has', format),
+
+  /**
+   * Read all clipboard content
+   * @returns {Promise<Object>} Result with all data
+   */
+  clipboardReadAll: () => ipcRenderer.invoke('clipboard:readAll'),
+
+  /**
+   * Clear clipboard
+   * @returns {Promise<Object>} Result with success flag
+   */
+  clipboardClear: () => ipcRenderer.invoke('clipboard:clear'),
+
+  /**
+   * Get clipboard history
+   * @param {number} [limit=10] - Max items to return
+   * @returns {Promise<Object>} Result with history array
+   */
+  clipboardGetHistory: (limit) => ipcRenderer.invoke('clipboard:getHistory', limit),
+
+  /**
+   * Clear clipboard history
+   * @returns {Promise<Object>} Result with success flag
+   */
+  clipboardClearHistory: () => ipcRenderer.invoke('clipboard:clearHistory'),
+
+  /**
+   * Restore item from history to clipboard
+   * @param {number} id - History item ID
+   * @returns {Promise<Object>} Result with success flag
+   */
+  clipboardRestoreFromHistory: (id) => ipcRenderer.invoke('clipboard:restoreFromHistory', id),
+
+  /**
+   * Start monitoring clipboard changes
+   * @param {number} [interval=1000] - Check interval in ms
+   * @returns {Promise<Object>} Result with success flag
+   */
+  clipboardStartMonitoring: (interval) => ipcRenderer.invoke('clipboard:startMonitoring', interval),
+
+  /**
+   * Stop monitoring clipboard changes
+   * @returns {Promise<Object>} Result with success flag
+   */
+  clipboardStopMonitoring: () => ipcRenderer.invoke('clipboard:stopMonitoring'),
+
+  /**
+   * Check if monitoring is active
+   * @returns {Promise<Object>} Result with monitoring boolean
+   */
+  clipboardIsMonitoring: () => ipcRenderer.invoke('clipboard:isMonitoring'),
+
+  /**
+   * Get clipboard statistics
+   * @returns {Promise<Object>} Result with stats
+   */
+  clipboardGetStats: () => ipcRenderer.invoke('clipboard:getStats'),
+
+  /**
    * IPC Communication Helper
    * Sends a message to the main process and waits for response
    * Uses centralized channel validation
