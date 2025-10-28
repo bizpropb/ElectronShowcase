@@ -582,6 +582,70 @@ contextBridge.exposeInMainWorld('electronAPI', {
   shortcutsGetStats: () => ipcRenderer.invoke('shortcuts:getStats'),
 
   /**
+   * Window Management APIs
+   */
+
+  /**
+   * Create a new window with custom options
+   * @param {Object} options - Window configuration
+   * @returns {Promise<Object>} Result with window ID
+   */
+  windowCreate: (options) => ipcRenderer.invoke('window:create', options),
+
+  /**
+   * Show About window
+   * @returns {Promise<Object>} Result with success flag
+   */
+  windowShowAbout: () => ipcRenderer.invoke('window:showAbout'),
+
+  /**
+   * Show Settings window
+   * @returns {Promise<Object>} Result with success flag
+   */
+  windowShowSettings: () => ipcRenderer.invoke('window:showSettings'),
+
+  /**
+   * Create floating note window (frameless)
+   * @returns {Promise<Object>} Result with success flag
+   */
+  windowCreateFloatingNote: () => ipcRenderer.invoke('window:createFloatingNote'),
+
+  /**
+   * Create overlay window (transparent)
+   * @param {Object} options - Overlay options
+   * @returns {Promise<Object>} Result with success flag
+   */
+  windowCreateOverlay: (options) => ipcRenderer.invoke('window:createOverlay', options),
+
+  /**
+   * Close a window by ID
+   * @param {string} windowId - Window identifier
+   * @returns {Promise<Object>} Result with success flag
+   */
+  windowClose: (windowId) => ipcRenderer.invoke('window:close', windowId),
+
+  /**
+   * Get all open windows
+   * @returns {Promise<Object>} Result with windows array
+   */
+  windowGetAll: () => ipcRenderer.invoke('window:getAll'),
+
+  /**
+   * Focus a specific window
+   * @param {string} windowId - Window identifier
+   * @returns {Promise<Object>} Result with success flag
+   */
+  windowFocus: (windowId) => ipcRenderer.invoke('window:focus', windowId),
+
+  /**
+   * Position a window on screen
+   * @param {string} windowId - Window identifier
+   * @param {string} position - Position: 'center', 'top-left', 'top-right', 'bottom-left', 'bottom-right'
+   * @returns {Promise<Object>} Result with success flag
+   */
+  windowPosition: (windowId, position) => ipcRenderer.invoke('window:position', windowId, position),
+
+  /**
    * IPC Communication Helper
    * Sends a message to the main process and waits for response
    * Uses centralized channel validation

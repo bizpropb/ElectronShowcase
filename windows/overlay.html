@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overlay Window</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: transparent;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .overlay-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay-content {
+      background: rgba(13, 17, 23, 0.95);
+      border: 2px solid rgba(88, 166, 255, 0.5);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      color: white;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      animation: fadeInScale 0.3s ease-out;
+      max-width: 90%;
+    }
+
+    .overlay-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .overlay-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .overlay-message {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 20px;
+    }
+
+    .overlay-timer {
+      font-size: 32px;
+      font-weight: bold;
+      color: #58a6ff;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 20px;
+    }
+
+    .overlay-btn {
+      background: #58a6ff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin: 0 6px;
+    }
+
+    .overlay-btn:hover {
+      background: #4a94e6;
+      transform: translateY(-1px);
+    }
+
+    .overlay-btn.secondary {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .overlay-btn.secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    .draggable {
+      -webkit-app-region: drag;
+      cursor: move;
+    }
+
+    button {
+      -webkit-app-region: no-drag;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay-container">
+    <div class="overlay-content draggable">
+      <div class="overlay-icon">🎯</div>
+      <h2 class="overlay-title">Transparent Overlay</h2>
+      <p class="overlay-message">This window demonstrates a transparent, always-on-top overlay window with custom styling and blur effects.</p>
+      <div class="overlay-timer" id="timer">00:00</div>
+      <div>
+        <button class="overlay-btn" id="toggle-timer">Start Timer</button>
+        <button class="overlay-btn secondary" id="reset-timer">Reset</button>
+        <button class="overlay-btn secondary" id="close-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let timerInterval = null;
+    let seconds = 0;
+    let isRunning = false;
+
+    const timerElement = document.getElementById('timer');
+    const toggleBtn = document.getElementById('toggle-timer');
+    const resetBtn = document.getElementById('reset-timer');
+    const closeBtn = document.getElementById('close-btn');
+
+    function updateTimer() {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      timerElement.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      if (isRunning) {
+        // Stop timer
+        clearInterval(timerInterval);
+        toggleBtn.textContent = 'Resume Timer';
+        isRunning = false;
+      } else {
+        // Start timer
+        timerInterval = setInterval(() => {
+          seconds++;
+          updateTimer();
+        }, 1000);
+        toggleBtn.textContent = 'Pause Timer';
+        isRunning = true;
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      clearInterval(timerInterval);
+      seconds = 0;
+      isRunning = false;
+      updateTimer();
+      toggleBtn.textContent = 'Start Timer';
+    });
+
+    closeBtn.addEventListener('click', () => {
+      window.close();
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        window.close();
+      }
+    });
+  </script>
+</body>
+</html>

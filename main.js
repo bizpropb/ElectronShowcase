@@ -5,12 +5,16 @@ const notificationManager = require('./utils/notificationManager');
 const storeManager = require('./utils/storeManager');
 const clipboardManager = require('./utils/clipboardManager');
 const shortcutManager = require('./utils/shortcutManager');
+const WindowManager = require('./utils/windowManager');
 
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow;
 let tray = null;
 let recentFiles = [];
 const MAX_RECENT_FILES = 10;
+
+// Initialize window manager
+let windowManager;
 
 /**
  * Create the application menu
@@ -467,6 +471,9 @@ function handleProtocolUrl(url) {
  * This event fires when Electron has finished initialization
  */
 app.whenReady().then(() => {
+  // Initialize window manager
+  windowManager = new WindowManager(storeManager);
+
   registerProtocolHandler();
   createApplicationMenu();
   createTray();
@@ -1517,6 +1524,100 @@ ipcMain.handle('shortcuts:getStats', () => {
   try {
     const stats = shortcutManager.getStats();
     return { success: true, stats };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * IPC Handlers for Window Management
+ */
+
+// Create new window
+ipcMain.handle('window:create', (event, options) => {
+  try {
+    const window = windowManager.createWindow(options);
+    return { success: true, id: window.id };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Show About window
+ipcMain.handle('window:showAbout', () => {
+  try {
+    windowManager.showAbout();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Show Settings window
+ipcMain.handle('window:showSettings', () => {
+  try {
+    windowManager.showSettings();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Create floating note
+ipcMain.handle('window:createFloatingNote', () => {
+  try {
+    windowManager.createFloatingNote();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Create overlay window
+ipcMain.handle('window:createOverlay', (event, options) => {
+  try {
+    windowManager.createOverlay(options);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Close window by ID
+ipcMain.handle('window:close', (event, windowId) => {
+  try {
+    windowManager.closeWindow(windowId);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get all windows
+ipcMain.handle('window:getAll', () => {
+  try {
+    const windows = windowManager.getAllWindows();
+    return { success: true, windows };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Focus window by ID
+ipcMain.handle('window:focus', (event, windowId) => {
+  try {
+    windowManager.focusWindow(windowId);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Position window on screen
+ipcMain.handle('window:position', (event, windowId, position) => {
+  try {
+    windowManager.positionWindow(windowId, position);
+    return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
   }

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings</title>
+  <link rel="stylesheet" href="../styles/theme.css">
+  <link rel="stylesheet" href="../styles/animations.css">
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body style="padding: var(--space-6);">
+  <div class="fade-in">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+      <h1 style="font-size: 28px; font-weight: 600; margin: 0;">⚙️ Settings</h1>
+      <span style="color: var(--text-secondary); font-size: var(--font-size-sm);">v0.1.0</span>
+    </div>
+
+    <!-- General Settings -->
+    <section style="margin-bottom: var(--space-6);">
+      <h2 style="font-size: 18px; margin-bottom: var(--space-4); color: var(--text-secondary);">General</h2>
+
+      <div style="background: var(--bg-secondary); border-radius: 8px; padding: var(--space-4);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3) 0; border-bottom: 1px solid var(--border);">
+          <div>
+            <div style="font-weight: 500; margin-bottom: 4px;">Launch at Startup</div>
+            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">Start automatically when you log in</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="launch-startup">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3) 0; border-bottom: 1px solid var(--border);">
+          <div>
+            <div style="font-weight: 500; margin-bottom: 4px;">Minimize to Tray</div>
+            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">Keep app running in system tray</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="minimize-tray" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3) 0;">
+          <div>
+            <div style="font-weight: 500; margin-bottom: 4px;">Show Notifications</div>
+            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">Display desktop notifications</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="show-notifications" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Appearance Settings -->
+    <section style="margin-bottom: var(--space-6);">
+      <h2 style="font-size: 18px; margin-bottom: var(--space-4); color: var(--text-secondary);">Appearance</h2>
+
+      <div style="background: var(--bg-secondary); border-radius: 8px; padding: var(--space-4);">
+        <div style="margin-bottom: var(--space-4);">
+          <div style="font-weight: 500; margin-bottom: var(--space-2);">Theme</div>
+          <select id="theme-select" style="width: 100%; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); font-size: var(--font-size-base);">
+            <option value="dark" selected>Dark</option>
+            <option value="light">Light (Coming Soon)</option>
+            <option value="auto">Auto (System)</option>
+          </select>
+        </div>
+
+        <div>
+          <div style="font-weight: 500; margin-bottom: var(--space-2);">Window Opacity</div>
+          <input type="range" id="opacity-slider" min="50" max="100" value="100" style="width: 100%;">
+          <div style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-top: 8px;">
+            Opacity: <span id="opacity-value">100</span>%
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Advanced Settings -->
+    <section>
+      <h2 style="font-size: 18px; margin-bottom: var(--space-4); color: var(--text-secondary);">Advanced</h2>
+
+      <div style="background: var(--bg-secondary); border-radius: 8px; padding: var(--space-4);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3) 0; border-bottom: 1px solid var(--border);">
+          <div>
+            <div style="font-weight: 500; margin-bottom: 4px;">Hardware Acceleration</div>
+            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">Use GPU for rendering (requires restart)</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="hardware-acceleration" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3) 0;">
+          <div>
+            <div style="font-weight: 500; margin-bottom: 4px;">Developer Mode</div>
+            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">Enable DevTools and debugging</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="dev-mode">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Action Buttons -->
+    <div style="display: flex; gap: var(--space-3); margin-top: var(--space-6);">
+      <button class="btn btn-primary" id="save-btn" style="flex: 1;">Save Settings</button>
+      <button class="btn" id="reset-btn" style="flex: 1; background: var(--bg-secondary);">Reset to Defaults</button>
+      <button class="btn" id="close-btn" style="background: var(--bg-tertiary);">Close</button>
+    </div>
+
+    <!-- Status Message -->
+    <div id="status-message" style="margin-top: var(--space-3); text-align: center; font-size: var(--font-size-sm); color: var(--accent-green); opacity: 0; transition: opacity 0.3s;"></div>
+  </div>
+
+  <style>
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--bg-tertiary);
+      transition: 0.3s;
+      border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+      background-color: var(--accent-blue);
+    }
+
+    input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+    }
+  </style>
+
+  <script>
+    // Opacity slider
+    const opacitySlider = document.getElementById('opacity-slider');
+    const opacityValue = document.getElementById('opacity-value');
+
+    opacitySlider.addEventListener('input', (e) => {
+      opacityValue.textContent = e.target.value;
+    });
+
+    // Save button
+    document.getElementById('save-btn').addEventListener('click', () => {
+      showStatus('Settings saved successfully!', 'success');
+      // Here you would save settings to electron-store
+    });
+
+    // Reset button
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      if (confirm('Reset all settings to defaults?')) {
+        // Reset all controls to defaults
+        document.getElementById('launch-startup').checked = false;
+        document.getElementById('minimize-tray').checked = true;
+        document.getElementById('show-notifications').checked = true;
+        document.getElementById('theme-select').value = 'dark';
+        document.getElementById('opacity-slider').value = 100;
+        opacityValue.textContent = '100';
+        document.getElementById('hardware-acceleration').checked = true;
+        document.getElementById('dev-mode').checked = false;
+
+        showStatus('Settings reset to defaults', 'success');
+      }
+    });
+
+    // Close button
+    document.getElementById('close-btn').addEventListener('click', () => {
+      window.close();
+    });
+
+    // Show status message
+    function showStatus(message, type = 'success') {
+      const statusEl = document.getElementById('status-message');
+      statusEl.textContent = message;
+      statusEl.style.color = type === 'success' ? 'var(--accent-green)' : 'var(--accent-red)';
+      statusEl.style.opacity = '1';
+
+      setTimeout(() => {
+        statusEl.style.opacity = '0';
+      }, 3000);
+    }
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        window.close();
+      }
+    });
+  </script>
+</body>
+</html>

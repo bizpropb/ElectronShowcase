@@ -35,52 +35,74 @@
       <div class="category-header">
         <span class="category-icon">🪟</span>
         <h2 class="category-title">Window Management</h2>
-        <span class="category-count">4 features</span>
+        <span class="category-count">5 features</span>
       </div>
 
       <div class="features-grid">
         <div class="card">
           <div class="card-header">
-            <span class="card-icon">🎨</span>
-            <h3 class="card-title">Multi-Window</h3>
+            <span class="card-icon">📄</span>
+            <h3 class="card-title">About Window</h3>
           </div>
           <p class="card-description">
-            Create and manage multiple windows with proper lifecycle management and state persistence.
+            Open a modal About window with app information and version details.
           </p>
-          <span class="card-status coming-soon">Coming Soon</span>
+          <div class="card-actions">
+            <button class="btn btn-primary" id="show-about-btn">Open About</button>
+          </div>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <span class="card-icon">🖼️</span>
-            <h3 class="card-title">Frameless Window</h3>
+            <span class="card-icon">⚙️</span>
+            <h3 class="card-title">Settings Window</h3>
           </div>
           <p class="card-description">
-            Custom window chrome with draggable regions and custom title bar controls.
+            Open a persistent Settings window that maintains its state across sessions.
           </p>
-          <span class="card-status coming-soon">Coming Soon</span>
+          <div class="card-actions">
+            <button class="btn btn-primary" id="show-settings-btn">Open Settings</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📝</span>
+            <h3 class="card-title">Floating Note</h3>
+          </div>
+          <p class="card-description">
+            Create a frameless, draggable floating note window with custom controls.
+          </p>
+          <div class="card-actions">
+            <button class="btn btn-primary" id="create-floating-note-btn">Create Note</button>
+          </div>
         </div>
 
         <div class="card">
           <div class="card-header">
             <span class="card-icon">👻</span>
-            <h3 class="card-title">Transparent Window</h3>
+            <h3 class="card-title">Transparent Overlay</h3>
           </div>
           <p class="card-description">
-            Create overlay windows with transparency and click-through functionality.
+            Create a transparent overlay window that appears over other applications.
           </p>
-          <span class="card-status coming-soon">Coming Soon</span>
+          <div class="card-actions">
+            <button class="btn btn-primary" id="create-overlay-btn">Create Overlay</button>
+          </div>
         </div>
 
         <div class="card">
           <div class="card-header">
             <span class="card-icon">📐</span>
-            <h3 class="card-title">Window State</h3>
+            <h3 class="card-title">Window Manager</h3>
           </div>
           <p class="card-description">
-            Persist window bounds, position, and state across application restarts.
+            View and manage all open windows with focus and positioning controls.
           </p>
-          <span class="card-status coming-soon">Coming Soon</span>
+          <div class="card-actions">
+            <button class="btn btn-secondary" id="list-windows-btn">List Windows</button>
+          </div>
+          <div id="windows-list" class="mt-2 text-sm"></div>
         </div>
       </div>
     </section>
@@ -805,6 +827,96 @@
       console.error('✗ Electron API is NOT available - check preload.js');
     }
 
+    /**
+     * Window Management System Setup
+     */
+    function setupWindowManagement() {
+      const api = window.electronAPI;
+      if (!api) return;
+
+      // Show About Window
+      const showAboutBtn = document.getElementById('show-about-btn');
+      if (showAboutBtn) {
+        showAboutBtn.addEventListener('click', async () => {
+          const result = await api.windowShowAbout();
+          console.log('Show about result:', result);
+        });
+      }
+
+      // Show Settings Window
+      const showSettingsBtn = document.getElementById('show-settings-btn');
+      if (showSettingsBtn) {
+        showSettingsBtn.addEventListener('click', async () => {
+          const result = await api.windowShowSettings();
+          console.log('Show settings result:', result);
+        });
+      }
+
+      // Create Floating Note
+      const createFloatingNoteBtn = document.getElementById('create-floating-note-btn');
+      if (createFloatingNoteBtn) {
+        createFloatingNoteBtn.addEventListener('click', async () => {
+          const result = await api.windowCreateFloatingNote();
+          console.log('Create floating note result:', result);
+          if (result.success) {
+            await api.showNotificationTyped('success', 'Window Created', 'Floating note window created!');
+          }
+        });
+      }
+
+      // Create Overlay Window
+      const createOverlayBtn = document.getElementById('create-overlay-btn');
+      if (createOverlayBtn) {
+        createOverlayBtn.addEventListener('click', async () => {
+          const result = await api.windowCreateOverlay({
+            message: 'This is a transparent overlay window!'
+          });
+          console.log('Create overlay result:', result);
+          if (result.success) {
+            await api.showNotificationTyped('success', 'Window Created', 'Overlay window created! It will auto-close in 5 seconds.');
+          }
+        });
+      }
+
+      // List Windows
+      const listWindowsBtn = document.getElementById('list-windows-btn');
+      const windowsList = document.getElementById('windows-list');
+      if (listWindowsBtn && windowsList) {
+        listWindowsBtn.addEventListener('click', async () => {
+          const result = await api.windowGetAll();
+          console.log('Get all windows result:', result);
+
+          if (result.success && result.windows) {
+            if (result.windows.length === 0) {
+              windowsList.innerHTML = '<p style="color: var(--text-tertiary);">No windows found</p>';
+            } else {
+              let html = '<div style="margin-top: 8px;">';
+              html += '<p style="font-weight: 600; margin-bottom: 8px;">Open Windows:</p>';
+              result.windows.forEach(win => {
+                html += `
+                  <div style="padding: 8px; background: var(--bg-tertiary); border-radius: 4px; margin-bottom: 4px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <span>
+                        <strong>${win.type}</strong>
+                        ${win.title ? `- ${win.title}` : ''}
+                      </span>
+                      <span style="color: var(--text-tertiary); font-size: 0.875rem;">
+                        ${win.bounds.width}x${win.bounds.height}
+                      </span>
+                    </div>
+                  </div>
+                `;
+              });
+              html += '</div>';
+              windowsList.innerHTML = html;
+            }
+          } else {
+            windowsList.innerHTML = '<p style="color: var(--accent-red);">Failed to get windows</p>';
+          }
+        });
+      }
+    }
+
     // Add staggered animation delays to cards
     document.addEventListener('DOMContentLoaded', () => {
       const cards = document.querySelectorAll('.card');
@@ -815,6 +927,9 @@
 
       // Notification System Handlers
       setupNotificationSystem();
+
+      // Window Management Handlers
+      setupWindowManagement();
 
       // File Dialog handlers
       const resultContent = document.getElementById('dialog-result-content');
