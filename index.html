@@ -177,15 +177,67 @@
           <span class="card-status coming-soon">Coming Soon</span>
         </div>
 
-        <div class="card">
+        <div class="card" id="shortcuts-card" style="grid-column: span 2;">
           <div class="card-header">
             <span class="card-icon">⌨️</span>
-            <h3 class="card-title">Global Shortcuts</h3>
+            <h3 class="card-title">Global Keyboard Shortcuts</h3>
           </div>
           <p class="card-description">
-            Register system-wide keyboard shortcuts for quick app control.
+            Register and manage system-wide keyboard shortcuts that work even when the app is in the background.
           </p>
-          <span class="card-status coming-soon">Coming Soon</span>
+
+          <!-- Shortcuts List -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">
+              Registered Shortcuts
+              <button class="btn" id="shortcuts-refresh" style="background: var(--bg-tertiary); padding: 4px 12px; font-size: var(--font-size-xs); margin-left: var(--space-2);">Refresh</button>
+            </h4>
+            <div id="shortcuts-list" style="background: var(--bg-tertiary); border-radius: 6px; padding: var(--space-2); max-height: 300px; overflow-y: auto;">
+              <div style="color: var(--text-secondary); text-align: center; padding: var(--space-4);">Loading shortcuts...</div>
+            </div>
+          </div>
+
+          <!-- Shortcut Recorder -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">Record New Shortcut</h4>
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: var(--space-2);">
+              <input type="text" id="shortcuts-recorder" placeholder="Press keys to record (e.g., Ctrl+Alt+H)..." readonly style="padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary); font-family: monospace;">
+              <button class="btn" id="shortcuts-record-btn" style="background: var(--accent-blue);">Start Recording</button>
+            </div>
+            <div id="shortcuts-recorder-status" style="margin-top: var(--space-2); font-size: var(--font-size-xs); color: var(--text-secondary);"></div>
+          </div>
+
+          <!-- Management Controls -->
+          <div style="margin-top: var(--space-4);">
+            <h4 style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--space-2);">Management</h4>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2);">
+              <button class="btn" id="shortcuts-test-window" style="background: var(--accent-blue);">Test: Show/Hide</button>
+              <button class="btn" id="shortcuts-test-clipboard" style="background: var(--accent-green);">Test: Clipboard</button>
+              <button class="btn" id="shortcuts-export" style="background: var(--bg-tertiary);">Export</button>
+              <button class="btn" id="shortcuts-import" style="background: var(--bg-tertiary);">Import</button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-2); margin-top: var(--space-2);">
+              <button class="btn" id="shortcuts-reset" style="background: var(--accent-red);">Reset to Defaults</button>
+              <button class="btn" id="shortcuts-disable-all" style="background: var(--accent-yellow);">Disable All</button>
+            </div>
+          </div>
+
+          <!-- Statistics -->
+          <div id="shortcuts-stats" style="margin-top: var(--space-4); padding: var(--space-3); background: var(--bg-tertiary); border-radius: 6px; font-size: var(--font-size-xs); color: var(--text-secondary);">
+            <strong>Statistics:</strong>
+            <span id="stats-shortcuts-total">0</span> total •
+            <span id="stats-shortcuts-enabled">0</span> enabled •
+            <span id="stats-shortcuts-disabled">0</span> disabled •
+            <span id="stats-shortcuts-triggered">0</span> triggered
+          </div>
+
+          <!-- Result Display -->
+          <div id="shortcuts-result" style="margin-top: var(--space-3); padding: var(--space-3); background: var(--bg-tertiary); border-radius: 6px; font-size: var(--font-size-xs); color: var(--text-secondary); max-height: 150px; overflow-y: auto;">
+            <div style="color: var(--text-primary); margin-bottom: var(--space-2);">Result:</div>
+            <div id="shortcuts-result-content">Press Ctrl+Alt+E (or Cmd+Alt+E on Mac) to test show/hide window...</div>
+          </div>
+
+          <span class="card-status ready">✓ Ready</span>
         </div>
 
         <div class="card">
@@ -563,7 +615,7 @@
     <!-- Footer -->
     <footer class="footer">
       <p>Built with Electron • Node.js <span id="node-version">...</span> • Chrome <span id="chrome-version">...</span></p>
-      <p style="margin-top: var(--space-2);">Step 10 Complete: Shell Integration & Protocol Handler ✓</p>
+      <p style="margin-top: var(--space-2);">Step 11 Complete: Global Keyboard Shortcuts System ✓</p>
     </footer>
   </div>
 
@@ -1621,6 +1673,352 @@
           `<strong>Params:</strong> ${data.params}<br>` +
           `<strong>Full URL:</strong> <div style="margin-top: 8px; padding: 8px; background: var(--bg-primary); border-radius: 4px; font-family: monospace;">${data.url}</div>`);
       });
+
+      // Global Shortcuts handlers
+      const shortcutsResultContent = document.getElementById('shortcuts-result-content');
+      const shortcutsList = document.getElementById('shortcuts-list');
+      const shortcutsRecorder = document.getElementById('shortcuts-recorder');
+      const shortcutsRecorderStatus = document.getElementById('shortcuts-recorder-status');
+      const shortcutsRecordBtn = document.getElementById('shortcuts-record-btn');
+      let isRecording = false;
+      let recordedKeys = [];
+
+      function setShortcutsResult(text, isError = false) {
+        shortcutsResultContent.innerHTML = text;
+        shortcutsResultContent.style.color = isError ? 'var(--accent-red)' : 'var(--text-secondary)';
+      }
+
+      // Load and display all shortcuts
+      async function loadShortcuts() {
+        try {
+          const result = await window.electronAPI.shortcutsGetAll();
+          if (result.success) {
+            displayShortcuts(result.shortcuts);
+            await updateShortcutsStats();
+          } else {
+            setShortcutsResult(`✗ Error loading shortcuts: ${result.error}`, true);
+          }
+        } catch (error) {
+          setShortcutsResult(`✗ Error: ${error.message}`, true);
+        }
+      }
+
+      // Display shortcuts in the list
+      function displayShortcuts(shortcuts) {
+        if (shortcuts.length === 0) {
+          shortcutsList.innerHTML = '<div style="color: var(--text-secondary); text-align: center; padding: var(--space-4);">No shortcuts registered</div>';
+          return;
+        }
+
+        shortcutsList.innerHTML = '';
+
+        shortcuts.forEach(shortcut => {
+          const item = document.createElement('div');
+          item.style.cssText = 'display: grid; grid-template-columns: auto 1fr auto auto auto; gap: 12px; align-items: center; padding: 8px; background: var(--bg-primary); border-radius: 4px; margin-bottom: 8px;';
+
+          // Status indicator
+          const status = document.createElement('div');
+          status.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: ${shortcut.enabled ? 'var(--accent-green)' : 'var(--text-tertiary)'};`;
+          status.title = shortcut.enabled ? 'Enabled' : 'Disabled';
+          item.appendChild(status);
+
+          // Shortcut info
+          const info = document.createElement('div');
+          info.innerHTML = `
+            <div style="color: var(--text-primary); font-weight: 500; margin-bottom: 2px;">${shortcut.description}</div>
+            <div style="color: var(--text-secondary); font-size: var(--font-size-xs); font-family: monospace;">${shortcut.accelerator} → ${shortcut.action}</div>
+          `;
+          item.appendChild(info);
+
+          // Toggle button
+          const toggleBtn = document.createElement('button');
+          toggleBtn.className = 'btn';
+          toggleBtn.textContent = shortcut.enabled ? 'Disable' : 'Enable';
+          toggleBtn.style.cssText = `padding: 4px 12px; font-size: var(--font-size-xs); background: ${shortcut.enabled ? 'var(--accent-yellow)' : 'var(--accent-green)'};`;
+          toggleBtn.onclick = async () => {
+            const result = await window.electronAPI.shortcutsToggle(shortcut.id);
+            if (result.success) {
+              setShortcutsResult(`✓ Shortcut ${result.enabled ? 'enabled' : 'disabled'}: ${shortcut.description}`);
+              await loadShortcuts();
+            } else {
+              setShortcutsResult(`✗ Error: ${result.error}`, true);
+            }
+          };
+          item.appendChild(toggleBtn);
+
+          // Edit button
+          const editBtn = document.createElement('button');
+          editBtn.className = 'btn';
+          editBtn.textContent = 'Edit';
+          editBtn.style.cssText = 'padding: 4px 12px; font-size: var(--font-size-xs); background: var(--accent-blue);';
+          editBtn.onclick = async () => {
+            const newAccelerator = prompt(`Edit shortcut for: ${shortcut.description}\n\nCurrent: ${shortcut.accelerator}\n\nEnter new shortcut:`, shortcut.accelerator);
+            if (newAccelerator && newAccelerator !== shortcut.accelerator) {
+              // Check availability
+              const checkResult = await window.electronAPI.shortcutsCheckAvailability(newAccelerator);
+              if (!checkResult.available) {
+                alert(`Cannot use "${newAccelerator}": ${checkResult.message}`);
+                return;
+              }
+
+              // Update shortcut
+              const result = await window.electronAPI.shortcutsUpdate(shortcut.id, newAccelerator);
+              if (result.success) {
+                setShortcutsResult(`✓ Shortcut updated: ${shortcut.accelerator} → ${newAccelerator}`);
+                await loadShortcuts();
+              } else {
+                setShortcutsResult(`✗ Error updating: ${result.error}`, true);
+              }
+            }
+          };
+          item.appendChild(editBtn);
+
+          // Delete button
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'btn';
+          deleteBtn.textContent = 'Delete';
+          deleteBtn.style.cssText = 'padding: 4px 12px; font-size: var(--font-size-xs); background: var(--accent-red);';
+          deleteBtn.onclick = async () => {
+            if (confirm(`Delete shortcut: ${shortcut.description}?`)) {
+              const result = await window.electronAPI.shortcutsUnregister(shortcut.id);
+              if (result.success) {
+                setShortcutsResult(`✓ Shortcut deleted: ${shortcut.description}`);
+                await loadShortcuts();
+              } else {
+                setShortcutsResult(`✗ Error deleting: ${result.error}`, true);
+              }
+            }
+          };
+          item.appendChild(deleteBtn);
+
+          shortcutsList.appendChild(item);
+        });
+      }
+
+      // Update statistics
+      async function updateShortcutsStats() {
+        try {
+          const result = await window.electronAPI.shortcutsGetStats();
+          if (result.success) {
+            document.getElementById('stats-shortcuts-total').textContent = result.stats.totalShortcuts;
+            document.getElementById('stats-shortcuts-enabled').textContent = result.stats.enabledShortcuts;
+            document.getElementById('stats-shortcuts-disabled').textContent = result.stats.disabledShortcuts;
+            document.getElementById('stats-shortcuts-triggered').textContent = result.stats.totalTriggered;
+          }
+        } catch (error) {
+          console.error('Error updating shortcuts stats:', error);
+        }
+      }
+
+      // Shortcut recorder
+      function startRecording() {
+        isRecording = true;
+        recordedKeys = [];
+        shortcutsRecorder.value = '';
+        shortcutsRecorder.style.borderColor = 'var(--accent-blue)';
+        shortcutsRecorder.style.background = 'var(--bg-secondary)';
+        shortcutsRecorderStatus.textContent = 'Recording... Press your desired shortcut combination';
+        shortcutsRecorderStatus.style.color = 'var(--accent-blue)';
+        shortcutsRecordBtn.textContent = 'Stop Recording';
+        shortcutsRecordBtn.style.background = 'var(--accent-red)';
+        shortcutsRecorder.focus();
+      }
+
+      function stopRecording() {
+        isRecording = false;
+        shortcutsRecorder.style.borderColor = 'var(--border)';
+        shortcutsRecorder.style.background = 'var(--bg-tertiary)';
+        shortcutsRecorderStatus.textContent = '';
+        shortcutsRecordBtn.textContent = 'Start Recording';
+        shortcutsRecordBtn.style.background = 'var(--accent-blue)';
+      }
+
+      // Handle keyboard events for recording
+      document.addEventListener('keydown', (e) => {
+        if (!isRecording) return;
+
+        e.preventDefault();
+
+        const modifiers = [];
+        if (e.ctrlKey || e.metaKey) modifiers.push(e.metaKey && window.electronAPI.platform === 'darwin' ? 'Command' : 'Control');
+        if (e.altKey) modifiers.push('Alt');
+        if (e.shiftKey) modifiers.push('Shift');
+
+        // Get the actual key
+        let key = e.key;
+        if (key === 'Control' || key === 'Alt' || key === 'Shift' || key === 'Meta') {
+          // Just modifiers, don't record yet
+          return;
+        }
+
+        // Format the key name
+        if (key.length === 1) {
+          key = key.toUpperCase();
+        } else if (key.startsWith('Arrow')) {
+          key = key.replace('Arrow', '');
+        }
+
+        // Build accelerator
+        const accelerator = modifiers.concat(key).join('+');
+        shortcutsRecorder.value = accelerator;
+
+        // Check availability
+        window.electronAPI.shortcutsCheckAvailability(accelerator).then(result => {
+          if (result.available) {
+            shortcutsRecorderStatus.textContent = `✓ "${accelerator}" is available!`;
+            shortcutsRecorderStatus.style.color = 'var(--accent-green)';
+          } else {
+            shortcutsRecorderStatus.textContent = `✗ ${result.message}`;
+            shortcutsRecorderStatus.style.color = 'var(--accent-red)';
+          }
+        });
+      });
+
+      // Refresh button
+      document.getElementById('shortcuts-refresh')?.addEventListener('click', async () => {
+        await loadShortcuts();
+        setShortcutsResult('✓ Shortcuts list refreshed');
+      });
+
+      // Record button
+      shortcutsRecordBtn?.addEventListener('click', () => {
+        if (isRecording) {
+          const accelerator = shortcutsRecorder.value;
+          if (accelerator) {
+            // Prompt for details
+            const description = prompt(`Create shortcut for: ${accelerator}\n\nEnter description:`, 'Custom action');
+            if (description) {
+              const action = prompt('Enter action name (e.g., custom-action):', 'custom-action');
+              if (action) {
+                const id = `custom-${Date.now()}`;
+                window.electronAPI.shortcutsRegister(id, accelerator, action, description).then(result => {
+                  if (result.success) {
+                    setShortcutsResult(`✓ Shortcut registered: ${accelerator} → ${action}`);
+                    loadShortcuts();
+                  } else {
+                    setShortcutsResult(`✗ Error: ${result.error}`, true);
+                  }
+                });
+              }
+            }
+          }
+          stopRecording();
+        } else {
+          startRecording();
+        }
+      });
+
+      // Test buttons
+      document.getElementById('shortcuts-test-window')?.addEventListener('click', () => {
+        setShortcutsResult('Press Ctrl+Alt+E (or Cmd+Alt+E on Mac) to test show/hide window functionality!');
+      });
+
+      document.getElementById('shortcuts-test-clipboard')?.addEventListener('click', () => {
+        setShortcutsResult('Copy some text, then press Ctrl+Alt+C (or Cmd+Alt+C on Mac) to capture clipboard!');
+      });
+
+      // Export shortcuts
+      document.getElementById('shortcuts-export')?.addEventListener('click', async () => {
+        const result = await window.electronAPI.shortcutsExport();
+        if (result.success) {
+          const jsonString = JSON.stringify(result.config, null, 2);
+
+          // Save to file
+          const saveResult = await window.electronAPI.saveFileDialog({
+            title: 'Export Shortcuts',
+            defaultPath: `shortcuts-export-${Date.now()}.json`,
+            filters: [{ name: 'JSON Files', extensions: ['json'] }]
+          });
+
+          if (!saveResult.canceled && saveResult.filePath) {
+            await window.electronAPI.writeFile(saveResult.filePath, jsonString);
+            setShortcutsResult(`✓ Shortcuts exported to: ${saveResult.filePath}`);
+          } else {
+            setShortcutsResult('Export canceled');
+          }
+        } else {
+          setShortcutsResult(`✗ Error exporting: ${result.error}`, true);
+        }
+      });
+
+      // Import shortcuts
+      document.getElementById('shortcuts-import')?.addEventListener('click', async () => {
+        const fileResult = await window.electronAPI.openFileDialog({
+          title: 'Import Shortcuts',
+          filters: [{ name: 'JSON Files', extensions: ['json'] }]
+        });
+
+        if (!fileResult.canceled && fileResult.filePaths.length > 0) {
+          const readResult = await window.electronAPI.readFile(fileResult.filePaths[0]);
+
+          if (readResult.success) {
+            try {
+              const config = JSON.parse(readResult.content);
+              const importResult = await window.electronAPI.shortcutsImport(config);
+
+              if (importResult.success) {
+                setShortcutsResult(`✓ Imported ${importResult.count} shortcuts from: ${fileResult.filePaths[0]}`);
+                await loadShortcuts();
+              } else {
+                setShortcutsResult(`✗ Error importing: ${importResult.error}`, true);
+              }
+            } catch (error) {
+              setShortcutsResult(`✗ Invalid JSON file: ${error.message}`, true);
+            }
+          } else {
+            setShortcutsResult(`✗ Error reading file: ${readResult.error}`, true);
+          }
+        } else {
+          setShortcutsResult('Import canceled');
+        }
+      });
+
+      // Reset to defaults
+      document.getElementById('shortcuts-reset')?.addEventListener('click', async () => {
+        if (!confirm('Reset all shortcuts to defaults? This will overwrite your current shortcuts.')) {
+          return;
+        }
+
+        const result = await window.electronAPI.shortcutsResetToDefaults();
+        if (result.success) {
+          setShortcutsResult(`✓ Shortcuts reset to defaults (${result.shortcuts.length} shortcuts)`);
+          await loadShortcuts();
+        } else {
+          setShortcutsResult(`✗ Error resetting: ${result.error}`, true);
+        }
+      });
+
+      // Disable all shortcuts
+      document.getElementById('shortcuts-disable-all')?.addEventListener('click', async () => {
+        const allResult = await window.electronAPI.shortcutsGetAll();
+        if (allResult.success) {
+          let disabled = 0;
+          for (const shortcut of allResult.shortcuts) {
+            if (shortcut.enabled) {
+              const result = await window.electronAPI.shortcutsDisable(shortcut.id);
+              if (result.success) disabled++;
+            }
+          }
+          setShortcutsResult(`✓ Disabled ${disabled} shortcut(s)`);
+          await loadShortcuts();
+        }
+      });
+
+      // Listen for shortcut triggers
+      window.electronAPI.on('shortcut:triggered', (data) => {
+        console.log('Shortcut triggered:', data);
+        setShortcutsResult(`✓ Shortcut Triggered!<br>` +
+          `<strong>Action:</strong> ${data.action}<br>` +
+          `<strong>Accelerator:</strong> ${data.accelerator}<br>` +
+          `<strong>Time:</strong> ${new Date(data.timestamp).toLocaleTimeString()}`);
+        updateShortcutsStats();
+      });
+
+      // Initial load of shortcuts
+      loadShortcuts();
+
+      // Refresh shortcuts stats periodically
+      setInterval(updateShortcutsStats, 10000);
     });
   </script>
 </body>

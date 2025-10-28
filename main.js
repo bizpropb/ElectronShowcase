@@ -4,6 +4,7 @@ const fs = require('fs').promises;
 const notificationManager = require('./utils/notificationManager');
 const storeManager = require('./utils/storeManager');
 const clipboardManager = require('./utils/clipboardManager');
+const shortcutManager = require('./utils/shortcutManager');
 
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow;
@@ -470,6 +471,7 @@ app.whenReady().then(() => {
   createApplicationMenu();
   createTray();
   setupNotificationHandlers();
+  setupShortcutHandlers();
   createMainWindow();
 
   // On macOS, re-create window when dock icon is clicked and no windows are open
@@ -496,8 +498,15 @@ app.on('window-all-closed', () => {
  * Perform cleanup before application quits
  */
 app.on('before-quit', () => {
-  // Cleanup tasks can be added here
+  // Cleanup tasks
   console.log('Application shutting down...');
+
+  // Unregister all global shortcuts
+  shortcutManager.cleanup();
+
+  // Save shortcuts configuration to store
+  const shortcuts = shortcutManager.export();
+  storeManager.set('shortcuts', shortcuts);
 });
 
 /**
@@ -526,6 +535,69 @@ function setupNotificationHandlers() {
     console.log('Notification action:', data.action);
     if (mainWindow) {
       mainWindow.webContents.send('notification:action-clicked', data);
+    }
+  });
+}
+
+/**
+ * Setup global shortcut handlers
+ */
+function setupShortcutHandlers() {
+  // Load saved shortcuts from store
+  const savedShortcuts = storeManager.get('shortcuts', null);
+
+  // Initialize shortcut manager
+  shortcutManager.initialize(savedShortcuts);
+
+  // Listen for shortcut triggers
+  shortcutManager.on('shortcut-triggered', (data) => {
+    console.log('Shortcut triggered:', data.action);
+
+    // Send to renderer
+    if (mainWindow) {
+      mainWindow.webContents.send('shortcut:triggered', data);
+    }
+
+    // Handle built-in actions
+    switch (data.action) {
+      case 'show-hide-window':
+        toggleWindow();
+        break;
+
+      case 'create-note':
+        // Show notification for demo
+        notificationManager.showTyped('info', 'Create Note', 'Create note shortcut triggered!');
+        break;
+
+      case 'capture-clipboard':
+        // Read clipboard and show notification
+        try {
+          const text = clipboardManager.readText();
+          if (text) {
+            notificationManager.showTyped('success', 'Clipboard Captured', `Captured: ${text.substring(0, 50)}${text.length > 50 ? '...' : ''}`);
+          } else {
+            notificationManager.showTyped('warning', 'Clipboard Empty', 'No text in clipboard');
+          }
+        } catch (error) {
+          console.error('Error capturing clipboard:', error);
+        }
+        break;
+
+      case 'take-screenshot':
+        notificationManager.showTyped('info', 'Screenshot', 'Screenshot shortcut triggered! (Feature coming soon)');
+        break;
+
+      case 'quick-search':
+        // Focus window and show notification
+        if (mainWindow) {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+        notificationManager.showTyped('info', 'Quick Search', 'Quick search activated!');
+        break;
+
+      default:
+        console.log('Unknown shortcut action:', data.action);
     }
   });
 }
@@ -1259,6 +1331,192 @@ ipcMain.handle('shell:beep', () => {
   try {
     shell.beep();
     return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * IPC Handlers for Global Shortcuts
+ */
+
+// Get all shortcuts
+ipcMain.handle('shortcuts:getAll', () => {
+  try {
+    const shortcuts = shortcutManager.getAll();
+    return { success: true, shortcuts };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get a specific shortcut
+ipcMain.handle('shortcuts:get', (event, id) => {
+  try {
+    const shortcut = shortcutManager.get(id);
+    if (shortcut) {
+      return { success: true, shortcut };
+    } else {
+      return { success: false, error: 'Shortcut not found' };
+    }
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Register a new shortcut
+ipcMain.handle('shortcuts:register', (event, id, accelerator, action, description) => {
+  try {
+    const result = shortcutManager.register(id, accelerator, action, description);
+
+    // Save to store if successful
+    if (result.success) {
+      const shortcuts = shortcutManager.export();
+      storeManager.set('shortcuts', shortcuts);
+    }
+
+    return result;
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Unregister a shortcut
+ipcMain.handle('shortcuts:unregister', (event, id) => {
+  try {
+    const result = shortcutManager.unregister(id);
+
+    // Save to store
+    const shortcuts = shortcutManager.export();
+    storeManager.set('shortcuts', shortcuts);
+
+    return result;
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Update a shortcut
+ipcMain.handle('shortcuts:update', (event, id, newAccelerator) => {
+  try {
+    const result = shortcutManager.update(id, newAccelerator);
+
+    // Save to store if successful
+    if (result.success) {
+      const shortcuts = shortcutManager.export();
+      storeManager.set('shortcuts', shortcuts);
+    }
+
+    return result;
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Enable a shortcut
+ipcMain.handle('shortcuts:enable', (event, id) => {
+  try {
+    const result = shortcutManager.enable(id);
+
+    // Save to store
+    const shortcuts = shortcutManager.export();
+    storeManager.set('shortcuts', shortcuts);
+
+    return result;
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Disable a shortcut
+ipcMain.handle('shortcuts:disable', (event, id) => {
+  try {
+    const result = shortcutManager.disable(id);
+
+    // Save to store
+    const shortcuts = shortcutManager.export();
+    storeManager.set('shortcuts', shortcuts);
+
+    return result;
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Toggle shortcut enabled state
+ipcMain.handle('shortcuts:toggle', (event, id) => {
+  try {
+    const result = shortcutManager.toggle(id);
+
+    // Save to store
+    const shortcuts = shortcutManager.export();
+    storeManager.set('shortcuts', shortcuts);
+
+    return result;
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Check if accelerator is available
+ipcMain.handle('shortcuts:checkAvailability', (event, accelerator) => {
+  try {
+    const result = shortcutManager.checkAvailability(accelerator);
+    return { success: true, ...result };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Reset shortcuts to defaults
+ipcMain.handle('shortcuts:resetToDefaults', () => {
+  try {
+    const result = shortcutManager.resetToDefaults();
+
+    // Save to store
+    if (result.success) {
+      const shortcuts = shortcutManager.export();
+      storeManager.set('shortcuts', shortcuts);
+    }
+
+    return result;
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Export shortcuts
+ipcMain.handle('shortcuts:export', () => {
+  try {
+    const config = shortcutManager.export();
+    return { success: true, config };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Import shortcuts
+ipcMain.handle('shortcuts:import', (event, config) => {
+  try {
+    const result = shortcutManager.import(config);
+
+    // Save to store if successful
+    if (result.success) {
+      const shortcuts = shortcutManager.export();
+      storeManager.set('shortcuts', shortcuts);
+    }
+
+    return result;
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get shortcut statistics
+ipcMain.handle('shortcuts:getStats', () => {
+  try {
+    const stats = shortcutManager.getStats();
+    return { success: true, stats };
   } catch (error) {
     return { success: false, error: error.message };
   }

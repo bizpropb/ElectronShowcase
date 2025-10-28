@@ -484,6 +484,104 @@ contextBridge.exposeInMainWorld('electronAPI', {
   shellBeep: () => ipcRenderer.invoke('shell:beep'),
 
   /**
+   * Global Shortcuts APIs
+   */
+
+  /**
+   * Get all registered shortcuts
+   * @returns {Promise<Object>} Result with shortcuts array
+   */
+  shortcutsGetAll: () => ipcRenderer.invoke('shortcuts:getAll'),
+
+  /**
+   * Get a specific shortcut
+   * @param {string} id - Shortcut identifier
+   * @returns {Promise<Object>} Result with shortcut object
+   */
+  shortcutsGet: (id) => ipcRenderer.invoke('shortcuts:get', id),
+
+  /**
+   * Register a new global shortcut
+   * @param {string} id - Unique identifier
+   * @param {string} accelerator - Keyboard shortcut (e.g., 'CommandOrControl+Alt+E')
+   * @param {string} action - Action to trigger
+   * @param {string} description - Human-readable description
+   * @returns {Promise<Object>} Result with success flag
+   */
+  shortcutsRegister: (id, accelerator, action, description) =>
+    ipcRenderer.invoke('shortcuts:register', id, accelerator, action, description),
+
+  /**
+   * Unregister a shortcut
+   * @param {string} id - Shortcut identifier
+   * @returns {Promise<Object>} Result with success flag
+   */
+  shortcutsUnregister: (id) => ipcRenderer.invoke('shortcuts:unregister', id),
+
+  /**
+   * Update an existing shortcut's accelerator
+   * @param {string} id - Shortcut identifier
+   * @param {string} newAccelerator - New keyboard shortcut
+   * @returns {Promise<Object>} Result with success flag
+   */
+  shortcutsUpdate: (id, newAccelerator) =>
+    ipcRenderer.invoke('shortcuts:update', id, newAccelerator),
+
+  /**
+   * Enable a disabled shortcut
+   * @param {string} id - Shortcut identifier
+   * @returns {Promise<Object>} Result with success flag
+   */
+  shortcutsEnable: (id) => ipcRenderer.invoke('shortcuts:enable', id),
+
+  /**
+   * Disable an enabled shortcut
+   * @param {string} id - Shortcut identifier
+   * @returns {Promise<Object>} Result with success flag
+   */
+  shortcutsDisable: (id) => ipcRenderer.invoke('shortcuts:disable', id),
+
+  /**
+   * Toggle shortcut enabled state
+   * @param {string} id - Shortcut identifier
+   * @returns {Promise<Object>} Result with success flag and new enabled state
+   */
+  shortcutsToggle: (id) => ipcRenderer.invoke('shortcuts:toggle', id),
+
+  /**
+   * Check if an accelerator is available
+   * @param {string} accelerator - Keyboard shortcut to check
+   * @returns {Promise<Object>} Result with availability info
+   */
+  shortcutsCheckAvailability: (accelerator) =>
+    ipcRenderer.invoke('shortcuts:checkAvailability', accelerator),
+
+  /**
+   * Reset all shortcuts to defaults
+   * @returns {Promise<Object>} Result with success flag
+   */
+  shortcutsResetToDefaults: () => ipcRenderer.invoke('shortcuts:resetToDefaults'),
+
+  /**
+   * Export shortcuts configuration
+   * @returns {Promise<Object>} Result with config object
+   */
+  shortcutsExport: () => ipcRenderer.invoke('shortcuts:export'),
+
+  /**
+   * Import shortcuts configuration
+   * @param {Object} config - Shortcuts configuration
+   * @returns {Promise<Object>} Result with success flag
+   */
+  shortcutsImport: (config) => ipcRenderer.invoke('shortcuts:import', config),
+
+  /**
+   * Get shortcut statistics
+   * @returns {Promise<Object>} Result with statistics
+   */
+  shortcutsGetStats: () => ipcRenderer.invoke('shortcuts:getStats'),
+
+  /**
    * IPC Communication Helper
    * Sends a message to the main process and waits for response
    * Uses centralized channel validation
