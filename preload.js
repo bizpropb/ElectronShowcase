@@ -582,6 +582,71 @@ contextBridge.exposeInMainWorld('electronAPI', {
   shortcutsGetStats: () => ipcRenderer.invoke('shortcuts:getStats'),
 
   /**
+   * System Information APIs
+   */
+
+  /**
+   * Get all system information
+   * @returns {Promise<Object>} Result with comprehensive system info
+   */
+  systemGetAll: () => ipcRenderer.invoke('system:getAll'),
+
+  /**
+   * Get operating system information
+   * @returns {Promise<Object>} Result with OS info
+   */
+  systemGetOS: () => ipcRenderer.invoke('system:getOS'),
+
+  /**
+   * Get CPU information
+   * @returns {Promise<Object>} Result with CPU info
+   */
+  systemGetCPU: () => ipcRenderer.invoke('system:getCPU'),
+
+  /**
+   * Get memory information
+   * @returns {Promise<Object>} Result with memory info
+   */
+  systemGetMemory: () => ipcRenderer.invoke('system:getMemory'),
+
+  /**
+   * Get display/screen information
+   * @returns {Promise<Object>} Result with display info
+   */
+  systemGetDisplay: () => ipcRenderer.invoke('system:getDisplay'),
+
+  /**
+   * Get power status information
+   * @returns {Promise<Object>} Result with power info
+   */
+  systemGetPower: () => ipcRenderer.invoke('system:getPower'),
+
+  /**
+   * Get application metrics
+   * @returns {Promise<Object>} Result with app metrics
+   */
+  systemGetAppMetrics: () => ipcRenderer.invoke('system:getAppMetrics'),
+
+  /**
+   * Get network information
+   * @returns {Promise<Object>} Result with network info
+   */
+  systemGetNetwork: () => ipcRenderer.invoke('system:getNetwork'),
+
+  /**
+   * Generate system report (text format)
+   * @returns {Promise<Object>} Result with report string
+   */
+  systemGenerateReport: () => ipcRenderer.invoke('system:generateReport'),
+
+  /**
+   * Export system report to file
+   * @param {string} filePath - Path to save report
+   * @returns {Promise<Object>} Result with success flag
+   */
+  systemExportReport: (filePath) => ipcRenderer.invoke('system:exportReport', filePath),
+
+  /**
    * Window Management APIs
    */
 

@@ -123,19 +123,69 @@ const IPC_CHANNELS = {
     requiresResponse: true
   },
 
-  // System
-  'system:info': {
-    description: 'Get system information',
+  // System Information
+  'system:getAll': {
+    description: 'Get all system information',
     direction: 'renderer-to-main',
     requiresResponse: true
   },
-  'system:power': {
+  'system:getOS': {
+    description: 'Get operating system information',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'system:getCPU': {
+    description: 'Get CPU information',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'system:getMemory': {
+    description: 'Get memory information',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'system:getDisplay': {
+    description: 'Get display information',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'system:getPower': {
     description: 'Get power status',
     direction: 'renderer-to-main',
     requiresResponse: true
   },
+  'system:getAppMetrics': {
+    description: 'Get application metrics',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'system:getNetwork': {
+    description: 'Get network information',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'system:generateReport': {
+    description: 'Generate system report',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'system:exportReport': {
+    description: 'Export system report to file',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'system:info': {
+    description: 'Get system information (legacy)',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'system:power': {
+    description: 'Get power status (legacy)',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
   'system:screen': {
-    description: 'Get screen information',
+    description: 'Get screen information (legacy)',
     direction: 'renderer-to-main',
     requiresResponse: true
   },

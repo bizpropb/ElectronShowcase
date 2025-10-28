@@ -6,6 +6,7 @@ const storeManager = require('./utils/storeManager');
 const clipboardManager = require('./utils/clipboardManager');
 const shortcutManager = require('./utils/shortcutManager');
 const WindowManager = require('./utils/windowManager');
+const systemInfo = require('./utils/systemInfo');
 
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow;
@@ -1618,6 +1619,111 @@ ipcMain.handle('window:position', (event, windowId, position) => {
   try {
     windowManager.positionWindow(windowId, position);
     return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * IPC Handlers for System Information
+ */
+
+// Get all system information
+ipcMain.handle('system:getAll', () => {
+  try {
+    const info = systemInfo.getAllInfo();
+    return { success: true, info };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get OS information
+ipcMain.handle('system:getOS', () => {
+  try {
+    const os = systemInfo.getOSInfo();
+    return { success: true, os };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get CPU information
+ipcMain.handle('system:getCPU', () => {
+  try {
+    const cpu = systemInfo.getCPUInfo();
+    return { success: true, cpu };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get memory information
+ipcMain.handle('system:getMemory', () => {
+  try {
+    const memory = systemInfo.getMemoryInfo();
+    return { success: true, memory };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get display information
+ipcMain.handle('system:getDisplay', () => {
+  try {
+    const display = systemInfo.getDisplayInfo();
+    return { success: true, display };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get power information
+ipcMain.handle('system:getPower', () => {
+  try {
+    const power = systemInfo.getPowerInfo();
+    return { success: true, power };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get app metrics
+ipcMain.handle('system:getAppMetrics', () => {
+  try {
+    const metrics = systemInfo.getAppMetrics();
+    return { success: true, metrics };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get network information
+ipcMain.handle('system:getNetwork', () => {
+  try {
+    const network = systemInfo.getNetworkInfo();
+    return { success: true, network };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Generate system report
+ipcMain.handle('system:generateReport', () => {
+  try {
+    const report = systemInfo.generateReport();
+    return { success: true, report };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Export system report to file
+ipcMain.handle('system:exportReport', async (event, filePath) => {
+  try {
+    const report = systemInfo.generateReport();
+    await fs.writeFile(filePath, report, 'utf-8');
+    return { success: true, path: filePath };
   } catch (error) {
     return { success: false, error: error.message };
   }

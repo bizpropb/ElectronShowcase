@@ -569,12 +569,15 @@
         <div class="card">
           <div class="card-header">
             <span class="card-icon">📊</span>
-            <h3 class="card-title">System Info</h3>
+            <h3 class="card-title">System Information</h3>
           </div>
           <p class="card-description">
-            Comprehensive system and hardware information dashboard.
+            View comprehensive system, hardware, and application metrics in real-time.
           </p>
-          <span class="card-status coming-soon">Coming Soon</span>
+          <div class="card-actions">
+            <button class="btn btn-primary" id="show-system-info-btn">View Dashboard</button>
+            <button class="btn btn-secondary" id="export-system-report-btn">Export Report</button>
+          </div>
         </div>
       </div>
     </section>
@@ -634,10 +637,121 @@
       </div>
     </section>
 
+    <!-- System Information Modal -->
+    <div id="system-info-modal" class="modal" style="display: none;">
+      <div class="modal-content" style="max-width: 1000px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-header">
+          <h2>📊 System Information Dashboard</h2>
+          <button class="modal-close" id="close-system-info-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+
+          <!-- System Information Overview -->
+          <div class="info-grid">
+            <div class="info-card">
+              <h3>💻 Operating System</h3>
+              <div class="info-row">
+                <span class="info-label">Name:</span>
+                <span class="info-value" id="os-name">...</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Version:</span>
+                <span class="info-value" id="os-version">...</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Architecture:</span>
+                <span class="info-value" id="os-arch">...</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Uptime:</span>
+                <span class="info-value" id="os-uptime">...</span>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3>🔧 CPU</h3>
+              <div class="info-row">
+                <span class="info-label">Model:</span>
+                <span class="info-value" id="cpu-model">...</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Cores:</span>
+                <span class="info-value" id="cpu-cores">...</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Speed:</span>
+                <span class="info-value" id="cpu-speed">...</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Usage:</span>
+                <span class="info-value">
+                  <span id="cpu-usage">...</span>
+                  <div class="progress-bar" style="margin-top: 4px;">
+                    <div class="progress-fill" id="cpu-progress" style="width: 0%"></div>
+                  </div>
+                </span>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3>💾 Memory</h3>
+              <div class="info-row">
+                <span class="info-label">Total:</span>
+                <span class="info-value" id="memory-total">...</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Used:</span>
+                <span class="info-value" id="memory-used">...</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Free:</span>
+                <span class="info-value" id="memory-free">...</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Usage:</span>
+                <span class="info-value">
+                  <span id="memory-usage">...</span>
+                  <div class="progress-bar" style="margin-top: 4px;">
+                    <div class="progress-fill" id="memory-progress" style="width: 0%"></div>
+                  </div>
+                </span>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3>⚡ Application</h3>
+              <div class="info-row">
+                <span class="info-label">Name:</span>
+                <span class="info-value" id="app-name">...</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Version:</span>
+                <span class="info-value" id="app-version">...</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Memory:</span>
+                <span class="info-value" id="app-memory">...</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Uptime:</span>
+                <span class="info-value" id="app-uptime">...</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border);">
+            <button class="btn btn-primary" id="refresh-system-info-btn">🔄 Refresh Data</button>
+            <button class="btn btn-secondary" id="copy-system-info-btn">📋 Copy All Info</button>
+            <span id="system-info-status" style="margin-left: var(--space-3); color: var(--text-secondary);"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
       <p>Built with Electron • Node.js <span id="node-version">...</span> • Chrome <span id="chrome-version">...</span></p>
-      <p style="margin-top: var(--space-2);">Step 11 Complete: Global Keyboard Shortcuts System ✓</p>
+      <p style="margin-top: var(--space-2);">Step 13 Complete: System Information Dashboard ✓</p>
     </footer>
   </div>
 
@@ -2136,5 +2250,8 @@
       setInterval(updateShortcutsStats, 10000);
     });
   </script>
+
+  <!-- System Information Dashboard -->
+  <script src="renderer-systeminfo.js"></script>
 </body>
 </html>
