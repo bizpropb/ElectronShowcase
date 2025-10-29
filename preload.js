@@ -1,5 +1,4 @@
 const { contextBridge, ipcRenderer } = require('electron');
-const { isValidChannel, getChannelsByDirection } = require('./utils/ipcChannels');
 
 /**
  * Preload script for secure IPC communication
@@ -12,9 +11,40 @@ const { isValidChannel, getChannelsByDirection } = require('./utils/ipcChannels'
  * renderer to communicate with the main process.
  */
 
-// Get all valid renderer-to-main channels
-const validInvokeChannels = getChannelsByDirection('renderer-to-main');
-const validEventChannels = getChannelsByDirection('main-to-renderer');
+// Simple channel validation - whitelist of allowed channels
+const validInvokeChannels = [
+  'app:get-version',
+  'notification:show', 'notification:show-typed', 'notification:close', 'notification:close-all',
+  'notification:get-history', 'notification:clear-history', 'notification:get-queue', 'notification:clear-queue',
+  'notification:dnd-enable', 'notification:dnd-disable', 'notification:dnd-toggle', 'notification:dnd-status', 'notification:get-stats',
+  'dialog:openFile', 'dialog:openFiles', 'dialog:saveFile', 'dialog:selectDirectory', 'dialog:showMessageBox',
+  'system:getAll', 'system:getOS', 'system:getCPU', 'system:getMemory', 'system:getDisplay', 'system:getPower',
+  'system:getAppMetrics', 'system:getNetwork', 'system:generateReport', 'system:exportReport',
+  'window:create', 'window:showAbout', 'window:showSettings', 'window:createFloatingNote', 'window:createOverlay',
+  'window:getAll', 'window:focus', 'window:position', 'window:minimize', 'window:maximize', 'window:close',
+  'file:read', 'file:write', 'file:getMetadata', 'file:exists', 'file:getRecent', 'file:clearRecent',
+  'store:get', 'store:set', 'store:delete', 'store:clear', 'store:has', 'store:reset', 'store:getAll',
+  'store:getStats', 'store:export', 'store:import', 'store:setSecret', 'store:getSecret', 'store:deleteSecret',
+  'shell:openExternal', 'shell:openPath', 'shell:showItemInFolder', 'shell:moveItemToTrash', 'shell:beep',
+  'clipboard:readText', 'clipboard:writeText', 'clipboard:readHTML', 'clipboard:writeHTML',
+  'clipboard:readRTF', 'clipboard:writeRTF', 'clipboard:readImage', 'clipboard:writeImage',
+  'clipboard:availableFormats', 'clipboard:has', 'clipboard:readAll', 'clipboard:clear',
+  'clipboard:getHistory', 'clipboard:clearHistory', 'clipboard:restoreFromHistory',
+  'clipboard:startMonitoring', 'clipboard:stopMonitoring', 'clipboard:isMonitoring', 'clipboard:getStats',
+  'shortcuts:getAll', 'shortcuts:get', 'shortcuts:register', 'shortcuts:unregister', 'shortcuts:update',
+  'shortcuts:enable', 'shortcuts:disable', 'shortcuts:toggle', 'shortcuts:checkAvailability',
+  'shortcuts:resetToDefaults', 'shortcuts:export', 'shortcuts:import', 'shortcuts:getStats',
+  'switch-tab', 'update-browserview-bounds'
+];
+
+const validEventChannels = [
+  'notification:reply-received', 'notification:action-clicked',
+  'protocol:url-received', 'shortcut:triggered'
+];
+
+function isValidChannel(channel) {
+  return validInvokeChannels.includes(channel) || validEventChannels.includes(channel);
+}
 
 contextBridge.exposeInMainWorld('electronAPI', {
   /**
@@ -753,7 +783,38 @@ contextBridge.exposeInMainWorld('electronAPI', {
     if (validEventChannels.includes(channel)) {
       ipcRenderer.removeListener(channel, callback);
     }
-  }
+  },
+
+  /**
+   * Tab Navigation
+   */
+
+  /**
+   * Switch to a different tab
+   * @param {string} tabName - Name of the tab to switch to
+   * @param {number} headerTabsHeight - Measured height of header + tabs
+   * @returns {Promise<Object>} Result object
+   */
+  switchTab: (tabName, headerTabsHeight) => ipcRenderer.invoke('switch-tab', tabName, headerTabsHeight),
+
+  /**
+   * Update BrowserView bounds
+   * @param {number} headerTabsHeight - Measured height of header + tabs
+   * @returns {Promise<Object>} Result object
+   */
+  updateBrowserViewBounds: (headerTabsHeight) => ipcRenderer.invoke('update-browserview-bounds', headerTabsHeight),
+
+  /**
+   * Get platform information
+   * @returns {Promise<string>} Platform name
+   */
+  getPlatform: () => Promise.resolve(process.platform),
+
+  /**
+   * Get Electron version
+   * @returns {Promise<string>} Electron version
+   */
+  getElectronVersion: () => Promise.resolve(process.versions.electron)
 });
 
 // Log that preload script has loaded successfully

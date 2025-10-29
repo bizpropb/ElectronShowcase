@@ -15,7 +15,8 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
       background: var(--bg-primary);
       color: var(--text-primary);
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     .about-container {
@@ -23,9 +24,10 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
+      min-height: 100%;
       padding: var(--space-6);
       text-align: center;
+      box-sizing: border-box;
     }
 
     .app-icon {
@@ -161,25 +163,50 @@
   </div>
 
   <script>
-    // Populate version information
-    if (window.electronAPI) {
-      document.getElementById('electron-version').textContent = window.electronAPI.versions.electron;
-      document.getElementById('chrome-version').textContent = window.electronAPI.versions.chrome;
-      document.getElementById('node-version').textContent = window.electronAPI.versions.node;
-      document.getElementById('platform').textContent = window.electronAPI.platform;
+    // Populate version information immediately (script runs after DOM is loaded)
+    function populateVersions() {
+      if (window.electronAPI) {
+        console.log('electronAPI available:', window.electronAPI);
+        console.log('versions:', window.electronAPI.versions);
+        console.log('platform:', window.electronAPI.platform);
 
-      // Get app version
-      window.electronAPI.getVersion().then(version => {
-        document.getElementById('app-version').textContent = version;
-      }).catch(() => {
-        document.getElementById('app-version').textContent = '0.1.0';
-      });
+        const electronEl = document.getElementById('electron-version');
+        const chromeEl = document.getElementById('chrome-version');
+        const nodeEl = document.getElementById('node-version');
+        const platformEl = document.getElementById('platform');
+
+        if (electronEl) electronEl.textContent = window.electronAPI.versions.electron || 'N/A';
+        if (chromeEl) chromeEl.textContent = window.electronAPI.versions.chrome || 'N/A';
+        if (nodeEl) nodeEl.textContent = window.electronAPI.versions.node || 'N/A';
+        if (platformEl) platformEl.textContent = window.electronAPI.platform || 'N/A';
+
+        // Get app version
+        if (window.electronAPI.getVersion) {
+          window.electronAPI.getVersion().then(version => {
+            const appVersionEl = document.getElementById('app-version');
+            if (appVersionEl) appVersionEl.textContent = version;
+          }).catch(err => {
+            console.error('Failed to get version:', err);
+            const appVersionEl = document.getElementById('app-version');
+            if (appVersionEl) appVersionEl.textContent = '0.1.0';
+          });
+        }
+      } else {
+        console.error('electronAPI not available');
+        console.log('window object keys:', Object.keys(window));
+      }
     }
 
+    // Run immediately
+    populateVersions();
+
     // Close button handler
-    document.getElementById('close-btn').addEventListener('click', () => {
-      window.close();
-    });
+    const closeBtn = document.getElementById('close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        window.close();
+      });
+    }
 
     // Close on Escape key
     document.addEventListener('keydown', (e) => {

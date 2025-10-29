@@ -1,0 +1,236 @@
+/* Component-specific styles */
+
+/* Dialog and Message Boxes */
+.dialog-actions {
+  margin-top: var(--space-4);
+}
+
+.dialog-actions h4 {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.dialog-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+/* File Operations */
+.file-operations {
+  margin-top: var(--space-4);
+}
+
+.file-operations-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+/* Result Display */
+.result-display {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  min-height: 60px;
+}
+
+.result-display-title {
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+/* Drop Zone */
+.drop-zone {
+  margin-top: var(--space-4);
+  padding: var(--space-6);
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  text-align: center;
+  background: var(--bg-tertiary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.drop-zone:hover {
+  border-color: var(--accent-blue);
+  background: var(--bg-secondary);
+}
+
+.drop-zone-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-2);
+}
+
+.drop-zone-text {
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.drop-zone-subtext {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+/* Dropped Files List */
+.dropped-files {
+  margin-top: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+/* Notification System */
+.notification-actions {
+  margin-top: var(--space-4);
+}
+
+.notification-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.notification-stats {
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.notification-log {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  max-height: 120px;
+  overflow-y: auto;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.notification-log-title {
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+/* Clipboard Manager */
+.clipboard-textarea {
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  resize: vertical;
+  min-height: 80px;
+  font-family: monospace;
+  width: 100%;
+  margin-bottom: var(--space-2);
+}
+
+/* Shell Integration */
+.shell-url-input {
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  width: 100%;
+  margin-bottom: var(--space-2);
+}
+
+.shell-url-container {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+/* Progress Bar */
+.progress-container {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background-color: var(--bg-secondary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent-blue);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* Info Grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.info-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: var(--space-4);
+}
+
+.info-card h3 {
+  margin-top: 0;
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.info-label {
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+  flex-shrink: 0;
+  width: 35%;
+}
+
+.info-value {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  text-align: right;
+  word-break: break-word;
+  flex: 1;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .dialog-buttons,
+  .notification-buttons,
+  .file-operations-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}

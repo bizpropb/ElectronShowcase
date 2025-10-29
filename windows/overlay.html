@@ -18,6 +18,8 @@
       background: transparent;
       overflow: hidden;
       user-select: none;
+      margin: 0;
+      padding: 0;
     }
 
     .overlay-container {
@@ -27,6 +29,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 24px;
+      box-sizing: border-box;
     }
 
     .overlay-content {
@@ -39,7 +43,13 @@
       backdrop-filter: blur(10px);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
       animation: fadeInScale 0.3s ease-out;
-      max-width: 90%;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
     .overlay-icon {

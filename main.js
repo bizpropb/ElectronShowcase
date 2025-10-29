@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, dialog, shell, Tray, nativeImage, Notification, ipcMain } = require('electron');
+const { app, BrowserWindow, BrowserView, Menu, dialog, shell, Tray, nativeImage, Notification, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 const notificationManager = require('./utils/notificationManager');
@@ -16,6 +16,100 @@ const MAX_RECENT_FILES = 10;
 
 // Initialize window manager
 let windowManager;
+
+// Track current BrowserView for tab navigation
+let currentView = null;
+
+// Store the current header/tabs height
+let currentHeaderTabsHeight = 310; // Default fallback - header + tabs + padding
+
+/**
+ * Switch to a different tab by loading the corresponding page in a BrowserView
+ * @param {string} tabName - Name of the tab (e.g., 'window-management')
+ * @param {number} headerTabsHeight - Measured height of header + tabs from renderer
+ */
+function switchTab(tabName, headerTabsHeight = null) {
+  if (!mainWindow) return;
+
+  // Update the stored height if provided
+  if (headerTabsHeight !== null) {
+    console.log('switchTab received height:', headerTabsHeight);
+    currentHeaderTabsHeight = headerTabsHeight;
+  }
+
+  console.log('Using header/tabs height:', currentHeaderTabsHeight);
+
+  // Remove existing view
+  if (currentView) {
+    mainWindow.removeBrowserView(currentView);
+    currentView.webContents.destroy();
+    currentView = null;
+  }
+
+  // Create new BrowserView
+  currentView = new BrowserView({
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false,
+      preload: path.join(__dirname, 'preload.js')
+    }
+  });
+
+  mainWindow.setBrowserView(currentView);
+
+  // Get window bounds to position the view correctly
+  const bounds = mainWindow.getContentBounds();
+
+  // Position the view using the measured height from renderer
+  currentView.setBounds({
+    x: 0,
+    y: currentHeaderTabsHeight,
+    width: bounds.width,
+    height: bounds.height - currentHeaderTabsHeight
+  });
+
+  // Load the tab content
+  currentView.webContents.loadFile(`pages/${tabName}.html`);
+
+  // Handle window resize to update BrowserView bounds
+  const resizeHandler = () => {
+    if (currentView && mainWindow) {
+      const bounds = mainWindow.getContentBounds();
+      currentView.setBounds({
+        x: 0,
+        y: currentHeaderTabsHeight,
+        width: bounds.width,
+        height: bounds.height - currentHeaderTabsHeight
+      });
+    }
+  };
+
+  // Remove previous resize listeners and add new one
+  mainWindow.removeAllListeners('resize');
+  mainWindow.on('resize', resizeHandler);
+}
+
+/**
+ * Update BrowserView bounds when window is resized
+ * @param {number} headerTabsHeight - Measured height from renderer
+ */
+function updateBrowserViewBounds(headerTabsHeight = null) {
+  if (!mainWindow || !currentView) return;
+
+  // Update the stored height if provided
+  if (headerTabsHeight !== null) {
+    currentHeaderTabsHeight = headerTabsHeight;
+  }
+
+  const bounds = mainWindow.getContentBounds();
+  currentView.setBounds({
+    x: 0,
+    y: currentHeaderTabsHeight,
+    width: bounds.width,
+    height: bounds.height - currentHeaderTabsHeight
+  });
+}
 
 /**
  * Create the application menu
@@ -467,6 +561,12 @@ function handleProtocolUrl(url) {
   }
 }
 
+// Set App User Model ID for Windows notifications
+// This is required for notifications to work properly on Windows 10/11
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.electron.feature-explorer');
+}
+
 /**
  * App lifecycle: Ready
  * This event fires when Electron has finished initialization
@@ -609,6 +709,15 @@ function setupShortcutHandlers() {
     }
   });
 }
+
+/**
+ * IPC Handlers for App
+ */
+
+// Get app version
+ipcMain.handle('app:get-version', () => {
+  return app.getVersion();
+});
 
 /**
  * IPC Handlers for Notifications
@@ -1724,6 +1833,30 @@ ipcMain.handle('system:exportReport', async (event, filePath) => {
     const report = systemInfo.generateReport();
     await fs.writeFile(filePath, report, 'utf-8');
     return { success: true, path: filePath };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * IPC Handler for Tab Navigation
+ */
+
+// Switch to a different tab
+ipcMain.handle('switch-tab', (event, tabName, headerTabsHeight) => {
+  try {
+    switchTab(tabName, headerTabsHeight);
+    return { success: true, tab: tabName };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Update BrowserView bounds
+ipcMain.handle('update-browserview-bounds', (event, headerTabsHeight) => {
+  try {
+    updateBrowserViewBounds(headerTabsHeight);
+    return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
   }

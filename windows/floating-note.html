@@ -22,6 +22,9 @@
       border-radius: 8px;
       overflow: hidden;
       user-select: none;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     .titlebar {
@@ -74,11 +77,15 @@
     .note-content {
       padding: 12px;
       -webkit-app-region: no-drag;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     .note-textarea {
       width: 100%;
-      min-height: 120px;
+      flex: 1;
       padding: 8px;
       background: var(--bg-tertiary);
       border: 1px solid var(--border);
@@ -106,7 +113,6 @@
   <div class="titlebar">
     <div class="titlebar-title">📝 Floating Note</div>
     <div class="titlebar-controls">
-      <button class="titlebar-btn minimize" id="minimize-btn" title="Minimize">−</button>
       <button class="titlebar-btn close" id="close-btn" title="Close">×</button>
     </div>
   </div>
@@ -122,7 +128,6 @@
   <script>
     const textarea = document.getElementById('note-textarea');
     const charCount = document.getElementById('char-count');
-    const minimizeBtn = document.getElementById('minimize-btn');
     const closeBtn = document.getElementById('close-btn');
 
     // Character count
@@ -141,13 +146,6 @@
     // Auto-save content
     textarea.addEventListener('input', () => {
       localStorage.setItem('floating-note-content', textarea.value);
-    });
-
-    // Minimize button
-    minimizeBtn.addEventListener('click', () => {
-      const { BrowserWindow } = require('@electron/remote');
-      const win = BrowserWindow.getFocusedWindow();
-      if (win) win.minimize();
     });
 
     // Close button

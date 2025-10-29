@@ -556,6 +556,18 @@ const IPC_CHANNELS = {
     description: 'Get shortcut statistics',
     direction: 'renderer-to-main',
     requiresResponse: true
+  },
+
+  // Tab Navigation
+  'switch-tab': {
+    description: 'Switch to a different tab',
+    direction: 'renderer-to-main',
+    requiresResponse: true
+  },
+  'update-browserview-bounds': {
+    description: 'Update BrowserView bounds with measured height',
+    direction: 'renderer-to-main',
+    requiresResponse: true
   }
 };
 

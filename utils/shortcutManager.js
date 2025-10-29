@@ -63,23 +63,46 @@ class ShortcutManager extends EventEmitter {
    * @param {Object} savedShortcuts - Saved shortcuts from store
    */
   initialize(savedShortcuts = null) {
+    console.log('ShortcutManager initialize() called');
+    console.log('Saved shortcuts:', savedShortcuts);
+    console.log('Default shortcuts available:', Object.keys(this.defaults).length);
+
     // Load saved shortcuts or use defaults
-    const shortcuts = savedShortcuts || this.defaults;
+    // Check if savedShortcuts is an empty object or null
+    const isEmptyObject = savedShortcuts && typeof savedShortcuts === 'object' && Object.keys(savedShortcuts).length === 0;
+    const shortcuts = (savedShortcuts && !isEmptyObject) ? savedShortcuts : this.defaults;
+
+    console.log('Using shortcuts config:', shortcuts);
+    console.log('Number of shortcuts to register:', Object.keys(shortcuts).length);
+
+    let successCount = 0;
+    let failCount = 0;
 
     // Register each shortcut
     for (const [id, config] of Object.entries(shortcuts)) {
+      console.log(`[${id}] Processing:`, JSON.stringify(config));
+
       if (config.enabled) {
-        this.register(id, config.accelerator, config.action, config.description);
+        const result = this.register(id, config.accelerator, config.action, config.description);
+        console.log(`[${id}] Registration result:`, JSON.stringify(result));
+
+        if (result.success) {
+          successCount++;
+        } else {
+          failCount++;
+          console.error(`[${id}] FAILED to register: ${result.error}`);
+        }
       } else {
         // Store but don't register
         this.shortcuts.set(id, {
           ...config,
           registered: false
         });
+        console.log(`[${id}] Stored as disabled`);
       }
     }
 
-    console.log(`ShortcutManager initialized with ${this.shortcuts.size} shortcuts`);
+    console.log(`ShortcutManager initialized: ${this.shortcuts.size} total, ${successCount} registered, ${failCount} failed`);
   }
 
   /**

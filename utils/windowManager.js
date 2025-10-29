@@ -19,8 +19,10 @@ class WindowManager extends EventEmitter {
     this.windowConfigs = {
       about: {
         width: 500,
-        height: 400,
-        resizable: false,
+        height: 500,
+        resizable: true,
+        minWidth: 400,
+        minHeight: 400,
         minimizable: false,
         maximizable: false,
         modal: true,
@@ -37,10 +39,11 @@ class WindowManager extends EventEmitter {
         persistent: true
       },
       floatingNote: {
-        width: 300,
-        height: 200,
-        minWidth: 200,
-        minHeight: 150,
+        width: 320,
+        height: 280,
+        minWidth: 250,
+        minHeight: 220,
+        resizable: true,
         frame: false,
         transparent: false,
         alwaysOnTop: true,
@@ -49,8 +52,11 @@ class WindowManager extends EventEmitter {
         hasShadow: true
       },
       overlay: {
-        width: 400,
-        height: 300,
+        width: 450,
+        height: 350,
+        minWidth: 350,
+        minHeight: 300,
+        resizable: true,
         frame: false,
         transparent: true,
         alwaysOnTop: true,
@@ -401,16 +407,7 @@ class WindowManager extends EventEmitter {
    * @returns {BrowserWindow} Created window
    */
   createOverlay(options = {}) {
-    const window = this.createWindow('overlay', options);
-
-    // Auto-close overlay after 5 seconds
-    setTimeout(() => {
-      if (window && !window.isDestroyed()) {
-        window.close();
-      }
-    }, 5000);
-
-    return window;
+    return this.createWindow('overlay', options);
   }
 
   /**
