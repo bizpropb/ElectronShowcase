@@ -17,6 +17,15 @@ A desktop application demonstrating Electron's capabilities:
 
 Built with Electron, electron-store, pure HTML/CSS/JavaScript.
 
+Here’s a concise “Getting Started” you can paste straight into your README.  
+It assumes the code is already in the repo and the only thing missing are the exact steps to run it.
+
+## Getting It Running
+   ```bash
+   npm install
+   npm start
+   ```
+
 ## Status: Abandoned
 
 See **aFatalMistake.md** for the reasons why.
